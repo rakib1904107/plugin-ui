@@ -1,4 +1,3 @@
-import { RawHTML } from '@wordpress/element';
 import parse from 'html-react-parser';
 import { twMerge } from 'tailwind-merge';
 import Tooltip from './Tooltip';
@@ -41,16 +40,13 @@ const FieldLabel = ( {
         return isBold ? 'font-semibold' : 'font-normal';
     };
 
-    const renderText = ( content: string | React.ReactNode, wrapperClass: string ) => {
-        if ( ! content ) return null;
-        if ( typeof content === 'string' ) {
+    const renderText = ( contentText: string | React.ReactNode, wrapperClass: string ) => {
+        if ( ! contentText ) return null;
             return (
                 <div className={ wrapperClass }>
-                    <RawHTML>{ parse( content ) }</RawHTML>
+                    { parse(  contentText.toString() ) }
                 </div>
             );
-        }
-        return <div className={ wrapperClass }>{ content }</div>;
     };
 
     return (
@@ -74,7 +70,7 @@ const FieldLabel = ( {
                             ) }
                         >
                             { typeof title === 'string' ? (
-                                <RawHTML>{ parse( title ) }</RawHTML>
+                                parse( title )
                             ) : (
                                 title
                             ) }
@@ -85,7 +81,7 @@ const FieldLabel = ( {
                         <span className="text-sm text-gray-500">{ suffix }</span>
                     ) }
                 </div>
-                { renderText( description, 'text-xs text-gray-500 font-light' ) }
+                { renderText( (description || '').toString(), 'text-xs text-gray-500 font-light' ) }
             </div>
         </div>
     );
