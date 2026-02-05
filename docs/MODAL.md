@@ -17,10 +17,7 @@ A dialog component that displays content on top of the main content using React 
 |------|------|---------|-------------|
 | `open` | `boolean` | *required* | Whether the modal is visible |
 | `onClose` | `() => void` | *required* | Callback fired when modal should close |
-| `title` | `ReactNode` | - | Heading text displayed in the modal header |
-| `description` | `ReactNode` | - | Supporting text below the title |
-| `children` | `ReactNode` | - | Main content of the modal |
-| `footer` | `ReactNode` | - | Footer content (typically action buttons) |
+| `children` | `ReactNode` | - | Modal content (use sub-components for structure) |
 | `showCloseButton` | `boolean` | `true` | Show the X button in the top-right corner |
 | `closeOnOverlayClick` | `boolean` | `true` | Close when clicking the backdrop overlay |
 | `closeOnEscape` | `boolean` | `true` | Close when pressing Escape key |
@@ -42,7 +39,7 @@ A dialog component that displays content on top of the main content using React 
 ### Basic Modal
 
 ```tsx
-import { Modal } from "@plugin-ui/ui";
+import { Modal, ModalHeader, ModalTitle, ModalDescription } from "@plugin-ui/ui";
 import { useState } from "react";
 
 function Example() {
@@ -52,13 +49,14 @@ function Example() {
     <>
       <button onClick={() => setOpen(true)}>Open</button>
 
-      <Modal
-        open={open}
-        onClose={() => setOpen(false)}
-        title="Confirm Action"
-        description="This action cannot be undone."
-      >
-        <p>Are you sure you want to proceed?</p>
+      <Modal open={open} onClose={() => setOpen(false)}>
+        <ModalHeader>
+          <ModalTitle>Confirm Action</ModalTitle>
+          <ModalDescription>This action cannot be undone.</ModalDescription>
+        </ModalHeader>
+        <div className="p-8">
+          <p>Are you sure you want to proceed?</p>
+        </div>
       </Modal>
     </>
   );
@@ -68,39 +66,39 @@ function Example() {
 ### With Footer Actions
 
 ```tsx
-<Modal
-  open={open}
-  onClose={() => setOpen(false)}
-  title="Delete Account"
-  description="Permanently delete your account and all data."
-  footer={
-    <>
-      <button variant="outline" onClick={() => setOpen(false)}>
-        Cancel
-      </button>
-      <button variant="destructive" onClick={handleDelete}>
-        Delete
-      </button>
-    </>
-  }
->
-  <p>This action cannot be undone.</p>
+import { Modal, ModalHeader, ModalTitle, ModalDescription, ModalFooter } from "@plugin-ui/ui";
+
+<Modal open={open} onClose={() => setOpen(false)}>
+  <ModalHeader>
+    <ModalTitle>Delete Account</ModalTitle>
+    <ModalDescription>Permanently delete your account and all data.</ModalDescription>
+  </ModalHeader>
+  <div className="p-8">
+    <p>This action cannot be undone.</p>
+  </div>
+  <ModalFooter>
+    <button variant="outline" onClick={() => setOpen(false)}>Cancel</button>
+    <button variant="destructive" onClick={handleDelete}>Delete</button>
+  </ModalFooter>
 </Modal>
 ```
 
 ### Different Sizes
 
 ```tsx
-<Modal size="sm" open={open} onClose={onClose} title="Small">
-  {/* Compact content */}
+<Modal size="sm" open={open} onClose={onClose}>
+  <ModalHeader><ModalTitle>Small</ModalTitle></ModalHeader>
+  <div className="p-8">Compact content</div>
 </Modal>
 
-<Modal size="lg" open={open} onClose={onClose} title="Large">
-  {/* More content */}
+<Modal size="lg" open={open} onClose={onClose}>
+  <ModalHeader><ModalTitle>Large</ModalTitle></ModalHeader>
+  <div className="p-8">More content</div>
 </Modal>
 
-<Modal size="full" open={open} onClose={onClose} title="Full Screen">
-  {/* Maximum space */}
+<Modal size="full" open={open} onClose={onClose}>
+  <ModalHeader><ModalTitle>Full Screen</ModalTitle></ModalHeader>
+  <div className="p-8">Maximum space</div>
 </Modal>
 ```
 
@@ -110,17 +108,30 @@ function Example() {
 <Modal
   open={open}
   onClose={onClose}
-  title="Read Only"
-  // Disable click-outside and escape key
   closeOnOverlayClick={false}
   closeOnEscape={false}
-  // Hide close button
   showCloseButton={false}
 >
-  <p>User must click "Done" to close this modal.</p>
-  <footer>
+  <ModalHeader>
+    <ModalTitle>Read Only</ModalTitle>
+  </ModalHeader>
+  <div className="p-8">
+    <p>User must click "Done" to close this modal.</p>
+  </div>
+  <ModalFooter>
     <button onClick={onClose}>Done</button>
-  </footer>
+  </ModalFooter>
+</Modal>
+```
+
+### Custom Styling
+
+```tsx
+<Modal open={open} onClose={onClose}>
+  <ModalHeader className="border-red-500">
+    <ModalTitle className="text-red-500">Custom Styled</ModalTitle>
+  </ModalHeader>
+  <div className="p-8">Content</div>
 </Modal>
 ```
 
@@ -134,7 +145,7 @@ function Example() {
 
 ## Sub-Components
 
-For advanced customization, you can compose modals using exported sub-components:
+The Modal uses a composition API. Import sub-components to structure your modal:
 
 ```tsx
 import {
@@ -145,7 +156,18 @@ import {
   ModalDescription,
   ModalFooter,
   ModalClose,
+  ModalOverlay,
 } from "@plugin-ui/ui";
 ```
 
-These follow the same composition pattern as the main `Modal` but give you full control over layout and structure.
+| Sub-Component | Purpose |
+|---------------|---------|
+| `ModalHeader` | Header container with border |
+| `ModalTitle` | Heading (`<h2>`) with default styling |
+| `ModalDescription` | Description text with padding |
+| `ModalFooter` | Footer container with border and button layout |
+| `ModalContent` | Main content container (rarely used directly) |
+| `ModalOverlay` | Backdrop overlay (rarely used directly) |
+| `ModalClose` | Close button (rarely used directly) |
+
+All sub-components accept `className` prop for custom styling.

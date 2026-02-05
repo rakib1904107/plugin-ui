@@ -218,24 +218,9 @@ export interface ModalProps {
   onClose: () => void;
 
   /**
-   * Modal title
-   */
-  title?: ReactNode;
-
-  /**
-   * Modal description
-   */
-  description?: ReactNode;
-
-  /**
    * Modal content
    */
   children?: ReactNode;
-
-  /**
-   * Footer content (typically buttons)
-   */
-  footer?: ReactNode;
 
   /**
    * Whether to show close button
@@ -284,30 +269,26 @@ const sizeClasses = {
  *
  * <Button onClick={() => setOpen(true)}>Open Modal</Button>
  *
- * <Modal
- *   open={open}
- *   onClose={() => setOpen(false)}
- *   title="Edit Profile"
- *   description="Make changes to your profile here."
- *   footer={
- *     <>
- *       <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
- *       <Button onClick={handleSave}>Save</Button>
- *     </>
- *   }
- * >
- *   <Input placeholder="Name" />
- *   <Input placeholder="Email" />
+ * <Modal open={open} onClose={() => setOpen(false)}>
+ *   <ModalHeader>
+ *     <ModalTitle>Edit Profile</ModalTitle>
+ *     <ModalDescription>Make changes to your profile here.</ModalDescription>
+ *   </ModalHeader>
+ *   <div className="p-8">
+ *     <Input placeholder="Name" />
+ *     <Input placeholder="Email" />
+ *   </div>
+ *   <ModalFooter>
+ *     <Button variant="outline" onClick={() => setOpen(false)}>Cancel</Button>
+ *     <Button onClick={handleSave}>Save</Button>
+ *   </ModalFooter>
  * </Modal>
  * ```
  */
 export function Modal({
   open,
   onClose,
-  title,
-  description,
   children,
-  footer,
   showCloseButton = true,
   closeOnOverlayClick = true,
   closeOnEscape = true,
@@ -370,21 +351,7 @@ export function Modal({
       <ModalOverlay onClose={closeOnOverlayClick ? onClose : undefined} />
       <ModalContent className={cn(sizeClasses[size], className)}>
         {showCloseButton && <ModalClose onClose={onClose} />}
-
-        {(title || description) && (
-          <ModalHeader className={cn(showCloseButton && "pr-10")}>
-            {title && <ModalTitle>{title}</ModalTitle>}
-            {description && <ModalDescription>{description}</ModalDescription>}
-          </ModalHeader>
-        )}
-
-        {children && (
-          <div className={cn((title || description || footer) && "p-8")}>
-            {children}
-          </div>
-        )}
-
-        {footer && <ModalFooter>{footer}</ModalFooter>}
+        {children}
       </ModalContent>
     </>,
     portalContainer,
