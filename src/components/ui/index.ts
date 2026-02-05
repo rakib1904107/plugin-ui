@@ -13,8 +13,21 @@ export {
   type CurrencyInputProps,
   type CurrencyOption,
 } from "./currency-input";
-export { Input, type InputProps } from "./input";
-export { InputGroup, type InputGroupProps } from "./input-group";
+export { Input } from "./input";
+export {
+  InputGroup,
+  InputGroupAddon,
+  InputGroupButton,
+  InputGroupText,
+  InputGroupInput,
+  InputGroupTextarea,
+} from "./input-group";
+export {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSlot,
+  InputOTPSeparator,
+} from "./input-otp";
 export { Label, type LabelProps } from "./label";
 export {
     Modal, ModalClose, ModalContent, ModalDescription,
@@ -29,7 +42,7 @@ export {
 export { Separator, type SeparatorProps } from "./separator";
 export { Spinner } from "./spinner";
 export { Switch, type SwitchProps } from "./switch";
-export { Textarea, type TextareaProps } from "./textarea";
+export { Textarea } from "./textarea";
 export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";
 export { Toggle } from './toggle'
 export { ToggleGroup, ToggleGroupItem } from './toggle-group'

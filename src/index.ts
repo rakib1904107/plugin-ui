@@ -31,6 +31,16 @@ export {
     // Input
     Input,
     InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+    InputGroupText,
+    InputGroupTextarea,
+    // Input OTP
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSeparator,
+    InputOTPSlot,
     // Label
     Label,
     // Modal
@@ -67,11 +77,8 @@ export {
     type CurrencyInputProps,
     type CurrencyOption,
     type DesignSystemSectionProps,
-    type InputGroupProps,
-    type InputProps,
     type LabelProps, type ModalProps, type SeparatorProps,
-    type SwitchProps,
-    type TextareaProps
+    type SwitchProps
 } from "./components/ui";
 
 // ============================================
