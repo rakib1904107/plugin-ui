@@ -16,9 +16,26 @@ export {
 // ============================================
 export {
     // Alert
-    Alert, AlertDescription, AlertTitle,
+    Alert, AlertDescription, AlertTitle, AlertAction,
+    // Avatar
+    Avatar,
+    AvatarImage,
+    AvatarFallback,
+    AvatarGroup,
+    AvatarGroupCount,
+    AvatarBadge,
+    // Thumbnail
+    Thumbnail, type ThumbnailProps, type ThumbnailSize, type ThumbnailAspect,
     // Badge
     Badge,
+    // Breadcrumb
+    Breadcrumb,
+    BreadcrumbList,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+    BreadcrumbEllipsis,
     // Button
     Button,
     // Card
@@ -31,11 +48,23 @@ export {
     // Input
     Input,
     InputGroup,
+    InputGroupAddon,
+    InputGroupButton,
+    InputGroupInput,
+    InputGroupText,
+    InputGroupTextarea,
+    // Input OTP
+    InputOTP,
+    InputOTPGroup,
+    InputOTPSeparator,
+    InputOTPSlot,
     // Label
     Label,
     // Modal
     Modal, ModalClose, ModalContent, ModalDescription,
     ModalFooter, ModalHeader, ModalOverlay, ModalTitle,
+    // Notice
+    Notice, NoticeTitle, NoticeAction,
     // Separator
     Separator,
     // Spinner
@@ -61,9 +90,15 @@ export {
     CircularProgress,
     // Slider
     Slider,
+    // Tabs
+    Tabs,
+    TabsList,
+    TabsTrigger,
+    TabsContent,
+    // Selection Type
+    SelectionType,
+    SelectionItem,
     // Types
-    type AlertProps,
-    type AlertVariant,
     type BadgeProps,
     type BadgeVariant,
     type CardContentProps,
@@ -86,6 +121,8 @@ export {
     type SliderProps,
     type SwitchProps,
     type TextareaProps
+    type LabelProps, type ModalProps, type SeparatorProps,
+    type SwitchProps
 } from "./components/ui";
 
 // ============================================
