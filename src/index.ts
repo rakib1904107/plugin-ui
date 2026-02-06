@@ -19,6 +19,14 @@ export {
     Alert, AlertDescription, AlertTitle,
     // Badge
     Badge,
+    // Breadcrumb
+    Breadcrumb,
+    BreadcrumbList,
+    BreadcrumbItem,
+    BreadcrumbLink,
+    BreadcrumbPage,
+    BreadcrumbSeparator,
+    BreadcrumbEllipsis,
     // Button
     Button,
     // Card

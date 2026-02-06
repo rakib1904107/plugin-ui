@@ -5,6 +5,15 @@ export { Alert, AlertDescription, AlertTitle, type AlertProps, type AlertVariant
 export { Badge, type BadgeProps, type BadgeVariant } from "./badge";
 export { Button, buttonVariants } from "./button";
 export {
+  Breadcrumb,
+  BreadcrumbList,
+  BreadcrumbItem,
+  BreadcrumbLink,
+  BreadcrumbPage,
+  BreadcrumbSeparator,
+  BreadcrumbEllipsis,
+} from "./breadcrumb";
+export {
     Card, CardContent, CardDescription, CardFooter, CardHeader,
     CardTitle, type CardContentProps, type CardDescriptionProps, type CardFooterProps, type CardHeaderProps, type CardProps, type CardTitleProps
 } from "./card";
