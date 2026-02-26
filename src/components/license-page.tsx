@@ -1,4 +1,5 @@
 import { useMemo, useState, type HTMLAttributes, type ReactNode } from "react";
+import { RawHTML } from "@wordpress/element";
 import { doAction } from "@wordpress/hooks";
 import { Calendar, Eye, EyeOff, Info, KeyRound, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -7,12 +8,16 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Spinner } from "@/components/ui/spinner";
 import {
-  Modal,
-  ModalHeader,
-  ModalTitle,
-  ModalDescription,
-  ModalFooter,
-} from "@/components/ui/modal";
+  AlertDialog,
+  AlertDialogTrigger,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog";
 
 export interface LicenseStatus {
   is_valid: boolean;
@@ -66,8 +71,8 @@ export interface LicensePageProps extends HTMLAttributes<HTMLDivElement> {
   error: string;
   /** Called when user clicks the Activate button */
   onActivate: () => void;
-  /** Called when user confirms deactivation */
-  onDeactivate: () => void;
+  /** Called when user confirms deactivation. Receives `closeDialog` to dismiss the confirmation when ready. */
+  onDeactivate: (closeDialog: () => void) => void;
   /** Called when user clicks the Refresh button */
   onRefresh: () => void;
   /** Custom header image/illustration rendered in the top-right of the card */
@@ -121,7 +126,7 @@ export function LicensePage({
   ...props
 }: LicensePageProps) {
   const [showKey, setShowKey] = useState(false);
-  const [showDeactivateModal, setShowDeactivateModal] = useState(false);
+  const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
 
   const hasActive = useMemo(() => Boolean(status?.is_valid), [status]);
 
@@ -172,11 +177,10 @@ export function LicensePage({
   };
 
   const handleDeactivate = () => {
-    setShowDeactivateModal(false);
     doAction(`${hookNamespace}_license_action`, {
       action: "deactivate",
     });
-    onDeactivate();
+    onDeactivate(() => setDeactivateDialogOpen(false));
   };
 
   const handleRefresh = () => {
@@ -193,7 +197,7 @@ export function LicensePage({
 
   return (
     <div
-      className={cn("pui-root w-full max-w-2xl lg:max-w-3xl mx-auto", className)}
+      className={cn("w-full max-w-2xl lg:max-w-3xl mx-auto", className)}
       {...props}
     >
       <h1 className="text-2xl font-bold mb-6">{labels.title}</h1>
@@ -213,14 +217,14 @@ export function LicensePage({
             <div className="flex justify-between w-full">
               <div className="w-full md:w-1/2">
                 <div className="flex gap-2.5 items-center">
-                  <h2 className="text-lg font-bold">{labels.activationTitle}</h2>
+                  <h2 className="text-lg font-bold m-0">{labels.activationTitle}</h2>
                   {hasActive && (
                     <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-success/15 text-success">
                       {labels.activeStatus}
                     </span>
                   )}
                 </div>
-                <p className="mt-4 text-muted-foreground text-sm leading-snug">
+                <p className="m-0 mt-4 text-muted-foreground text-sm leading-snug">
                   {labels.activationDescription}
                 </p>
               </div>
@@ -241,7 +245,7 @@ export function LicensePage({
                   <KeyRound size={20} className="text-primary" />
                 </div>
                 <div className="flex flex-col justify-between">
-                  <h3 className="text-foreground font-bold text-lg">
+                  <h3 className="text-foreground font-bold text-lg p-0 m-0">
                     {labels.activateLicenseHeading}
                   </h3>
                   <span className="text-xs text-muted-foreground">
@@ -283,7 +287,7 @@ export function LicensePage({
 
             {/* Error message */}
             {error && (
-              <p className="text-destructive text-sm mt-2">{error}</p>
+              <p className="text-destructive text-sm m-0 mt-2">{error}</p>
             )}
 
             {/* Masked key info */}
@@ -298,14 +302,32 @@ export function LicensePage({
             <div className="flex items-center gap-3 mt-6">
               {hasActive ? (
                 <>
-                  <Button
-                    variant="destructive"
-                    size="sm"
-                    onClick={() => setShowDeactivateModal(true)}
-                    disabled={loading}
-                  >
-                    {labels.deactivateButton}
-                  </Button>
+                  <AlertDialog open={deactivateDialogOpen} onOpenChange={setDeactivateDialogOpen}>
+                    <AlertDialogTrigger>
+                      <Button variant="destructive" size="sm" disabled={loading}>{labels.deactivateButton}</Button>
+                    </AlertDialogTrigger>
+                    <AlertDialogContent>
+                      <AlertDialogHeader>
+                        <AlertDialogTitle>
+                          {labels.deactivateConfirmTitle}
+                        </AlertDialogTitle>
+                        <AlertDialogDescription>
+                          {labels.deactivateConfirmMessage}
+                        </AlertDialogDescription>
+                      </AlertDialogHeader>
+                      <AlertDialogFooter>
+                        <AlertDialogCancel>
+                          {labels.cancelButton}
+                        </AlertDialogCancel>
+                        <AlertDialogAction
+                          variant="destructive"
+                          onClick={handleDeactivate}
+                        >
+                          {labels.confirmDeactivateButton}
+                        </AlertDialogAction>
+                      </AlertDialogFooter>
+                    </AlertDialogContent>
+                  </AlertDialog>
                   <Button
                     variant="outline"
                     size="sm"
@@ -401,15 +423,12 @@ export function LicensePage({
                       strokeWidth={3}
                       className="min-w-4 mt-0.5"
                     />
-                    <div
-                      className="text-sm text-foreground"
-                      dangerouslySetInnerHTML={{
-                        __html: labels.expiryMessage!(
-                          expiryDate ? formatDate(expiryDate) : "",
-                          status.expiry_days,
-                        ),
-                      }}
-                    />
+                    <RawHTML className="text-sm text-foreground">
+                      {labels.expiryMessage!(
+                        expiryDate ? formatDate(expiryDate) : "",
+                        status.expiry_days,
+                      )}
+                    </RawHTML>
                   </div>
                 )
               ) : (
@@ -422,32 +441,6 @@ export function LicensePage({
         )}
       </div>
 
-      {/* Deactivation confirmation modal */}
-      <Modal
-        open={showDeactivateModal}
-        onClose={() => setShowDeactivateModal(false)}
-        size="sm"
-      >
-        <ModalHeader>
-          <ModalTitle>{labels.deactivateConfirmTitle}</ModalTitle>
-        </ModalHeader>
-        <ModalDescription className="text-muted-foreground">
-          {labels.deactivateConfirmMessage}
-        </ModalDescription>
-        <ModalFooter>
-          <div className="flex gap-2">
-            <Button
-              variant="secondary"
-              onClick={() => setShowDeactivateModal(false)}
-            >
-              {labels.cancelButton}
-            </Button>
-            <Button variant="destructive" onClick={handleDeactivate}>
-              {labels.confirmDeactivateButton}
-            </Button>
-          </div>
-        </ModalFooter>
-      </Modal>
     </div>
   );
 }
