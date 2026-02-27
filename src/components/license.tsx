@@ -301,26 +301,27 @@ export function License({
             <div className="flex items-center gap-3 mt-6">
               {hasActive ? (
                 <>
-                  <AlertDialog open={deactivateDialogOpen} onOpenChange={setDeactivateDialogOpen}>
+                  <AlertDialog open={deactivateDialogOpen} onOpenChange={(open) => { if (!loading) setDeactivateDialogOpen(open); }}>
                     <AlertDialogTrigger>
                       <Button variant="destructive" size="sm" disabled={loading}>{labels.deactivateButton}</Button>
                     </AlertDialogTrigger>
                     <AlertDialogContent>
                       <AlertDialogHeader>
-                        <AlertDialogTitle>
+                        <AlertDialogTitle className="p-0! m-0!">
                           {labels.deactivateConfirmTitle}
                         </AlertDialogTitle>
-                        <AlertDialogDescription>
+                        <AlertDialogDescription className="p-0! m-0!">
                           {labels.deactivateConfirmMessage}
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
-                        <AlertDialogCancel>
+                        <AlertDialogCancel disabled={loading}>
                           {labels.cancelButton}
                         </AlertDialogCancel>
                         <AlertDialogAction
                           variant="destructive"
                           onClick={handleDeactivate}
+                          disabled={loading}
                         >
                           {labels.confirmDeactivateButton}
                         </AlertDialogAction>
