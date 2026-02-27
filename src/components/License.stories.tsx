@@ -1,6 +1,6 @@
 import type { Meta, StoryObj } from "@storybook/react";
 import { fn } from "storybook/test";
-import { LicensePage, type LicenseStatus } from "./license-page";
+import { License, type LicenseStatus } from "./license";
 import React, { useState } from "react";
 
 const DefaultHeaderImage = () => (
@@ -106,8 +106,8 @@ const DefaultHeaderImage = () => (
 );
 
 const meta = {
-  title: "Components/LicensePage",
-  component: LicensePage,
+  title: "Components/License",
+  component: License,
   parameters: { layout: "padded" },
   tags: ["autodocs"],
   args: {
@@ -123,7 +123,7 @@ const meta = {
     pluginName: { control: "text" },
     hookNamespace: { control: "text" },
   },
-} satisfies Meta<typeof LicensePage>;
+} satisfies Meta<typeof License>;
 
 export default meta;
 
@@ -304,7 +304,7 @@ const InteractiveTemplate = () => {
   };
 
   return (
-    <LicensePage
+    <License
       licenseKey={licenseKey}
       onLicenseKeyChange={setLicenseKey}
       status={status}

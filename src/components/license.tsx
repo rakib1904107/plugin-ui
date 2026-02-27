@@ -1,12 +1,11 @@
 import { useMemo, useState, type HTMLAttributes, type ReactNode } from "react";
 import { RawHTML } from "@wordpress/element";
 import { doAction } from "@wordpress/hooks";
-import { Calendar, Eye, EyeOff, Info, KeyRound, RefreshCw } from "lucide-react";
+import { Calendar, Eye, EyeOff, Info, KeyRound, Loader, LoaderCircle, RefreshCw } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Spinner } from "@/components/ui/spinner";
 import {
   AlertDialog,
   AlertDialogTrigger,
@@ -29,7 +28,7 @@ export interface LicenseStatus {
   };
 }
 
-export interface LicensePageLabels {
+export interface LicenseLabels {
   title?: string;
   activationTitle?: string;
   activationDescription?: string;
@@ -58,7 +57,7 @@ export interface LicensePageLabels {
   hideKeyLabel?: string;
 }
 
-export interface LicensePageProps extends HTMLAttributes<HTMLDivElement> {
+export interface LicenseProps extends HTMLAttributes<HTMLDivElement> {
   /** Current license key value */
   licenseKey: string;
   /** Callback when the license key input changes */
@@ -82,7 +81,7 @@ export interface LicensePageProps extends HTMLAttributes<HTMLDivElement> {
   /** Plugin name used in default label strings. Defaults to 'Plugin' */
   pluginName?: string;
   /** Override default label strings for i18n or customization */
-  labels?: LicensePageLabels;
+  labels?: LicenseLabels;
   /** Format a date string for display (e.g., using dateI18n from @wordpress/date) */
   formatDate?: (date: Date) => string;
 }
@@ -108,7 +107,7 @@ const defaultFormatDate = (date: Date): string => {
   });
 };
 
-export function LicensePage({
+export function License({
   licenseKey,
   onLicenseKeyChange,
   status,
@@ -124,14 +123,14 @@ export function LicensePage({
   formatDate = defaultFormatDate,
   className,
   ...props
-}: LicensePageProps) {
+}: LicenseProps) {
   const [showKey, setShowKey] = useState(false);
   const [deactivateDialogOpen, setDeactivateDialogOpen] = useState(false);
 
   const hasActive = useMemo(() => Boolean(status?.is_valid), [status]);
 
   const labels = useMemo(() => {
-    const defaults: Required<LicensePageLabels> = {
+    const defaults: Required<LicenseLabels> = {
       title: "License",
       activationTitle: "License Activation",
       activationDescription: `Activate ${pluginName} with your license key for automatic updates and expert support from your dashboard.`,
@@ -206,7 +205,7 @@ export function LicensePage({
         {loading && (
           <div className="absolute inset-0 rounded-lg w-full h-full z-10 backdrop-blur-sm">
             <div className="flex items-center justify-center h-full">
-              <Spinner className="size-10" />
+              <LoaderCircle role="status" aria-label="Loading" className={cn("animate-spin size-10 text-primary")} strokeWidth={1} />
             </div>
           </div>
         )}
