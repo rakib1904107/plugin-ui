@@ -45,7 +45,11 @@ export {
     Button,
     // Card
     Card, CardContent, CardDescription, CardFooter, CardHeader,
-    CardTitle, CircularProgress,
+    CardTitle,
+    // Chart
+    ChartContainer, ChartTooltip, ChartTooltipContent,
+    ChartLegend, ChartLegendContent, ChartStyle,
+    CircularProgress,
     // Combobox
     Combobox,
     ComboboxChip,
@@ -230,7 +234,10 @@ export {
     TooltipTrigger,
     // Utilities
     useComboboxAnchor,
+    // Rich Text Editor
+    RichTextEditor,
     // Types
+    type RichTextEditorProps,
     type CircularProgressProps,
     type ComponentPreviewProps,
     type CurrencyInputProps,
