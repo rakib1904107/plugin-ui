@@ -326,3 +326,4 @@ export {
 // ============================================
 export { cn } from "@/lib/utils";
 export { twMerge } from "tailwind-merge";
+export * as recharts from 'recharts';
