@@ -21,10 +21,17 @@ export interface WordPressDateSettings {
     /** Timezone abbreviation, e.g. "EST". */
     abbr: string;
   };
-  /** WordPress date format string, e.g. "Y-m-d". */
-  dateFormat: string;
-  /** WordPress time format string, e.g. "H:i". */
-  timeFormat: string;
+  /** Date/time format strings from WordPress settings. */
+  formats: {
+    /** WordPress date format string, e.g. "j F, Y". */
+    date: string;
+    /** WordPress time format string, e.g. "H:i". */
+    time: string;
+    /** WordPress datetime format string. */
+    datetime: string;
+    /** Abbreviated datetime format string. */
+    datetimeAbbreviated: string;
+  };
   l10n: {
     locale: string;
     months: string[];
@@ -133,7 +140,7 @@ export function getWordPressLocale(): string {
  * Falls back to "Y-m-d" when settings are unavailable.
  */
 export function getWordPressDateFormat(): string {
-  return getWordPressDateSettings()?.dateFormat ?? "Y-m-d";
+  return getWordPressDateSettings()?.formats?.date ?? "Y-m-d";
 }
 
 /**
@@ -141,7 +148,7 @@ export function getWordPressDateFormat(): string {
  * Falls back to "H:i" when settings are unavailable.
  */
 export function getWordPressTimeFormat(): string {
-  return getWordPressDateSettings()?.timeFormat ?? "H:i";
+  return getWordPressDateSettings()?.formats?.time ?? "H:i";
 }
 
 /**

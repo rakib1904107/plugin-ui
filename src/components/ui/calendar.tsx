@@ -103,6 +103,7 @@ function Calendar({
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     <DayPicker
       {...(props as any)}
+      animate
       mode={mode}
       showOutsideDays={showOutsideDays}
       className={cn("p-3", className)}
