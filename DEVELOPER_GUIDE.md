@@ -185,24 +185,43 @@ module.exports = {
 
 ### 5. CSS Setup (Tailwind v4)
 
-Create your main CSS file. This is the most critical configuration step:
+This is the most critical configuration step. The layered approach scopes Tailwind's preflight reset and utilities to your app container, preventing style conflicts with WordPress.
 
 ```css
 /* src/styles/main.css */
 
-/* 1. Import Tailwind */
-@import "tailwindcss";
+/* 1. Declare layer order for deterministic specificity */
+@layer theme, base, components, utilities;
 
-/* 2. Import plugin-ui component styles */
-@import '@wedevs/plugin-ui/styles.css';
+/* 2. Import Tailwind theme (design tokens layer) */
+@import "tailwindcss/theme.css" layer(theme);
 
-/* 3. Scan your source files for Tailwind classes */
+/* 3. Scan your source files and plugin-ui for Tailwind classes */
 @source "../../src";
-
-/* 4. Scan plugin-ui dist for Tailwind classes used by components */
 @source "../../../node_modules/@wedevs/plugin-ui/dist";
 
-/* 5. Map CSS variables to Tailwind theme tokens */
+/* 4. Scope preflight (CSS reset) and utilities to your app container.
+      This prevents Tailwind from resetting styles on the rest of the page.
+      Replace #my-plugin-app with your actual mount-point ID. */
+#my-plugin-app {
+  @import "tailwindcss/preflight.css" layer(base);
+  @import "tailwindcss/utilities.css" layer(utilities) important;
+}
+
+/* 5. Import plugin-ui component styles */
+@import '@wedevs/plugin-ui/styles.css';
+
+/* 6. Define your theme tokens on .pui-root (set by ThemeProvider) */
+.pui-root {
+    --background: oklch(1 0 0);
+    --foreground: oklch(0.1450 0 0);
+    --primary: oklch(.511 .262 276.966);
+    --primary-foreground: oklch(0.9850 0 0);
+    /* ... other token overrides ... */
+    --radius: 0.625rem;
+}
+
+/* 7. Map CSS variables to Tailwind theme tokens */
 @theme inline {
     /* Colors */
     --color-background: var(--background);
@@ -268,6 +287,17 @@ Create your main CSS file. This is the most critical configuration step:
 }
 ```
 
+> **Why layered imports?** Scoping preflight and utilities to your container (`#my-plugin-app`) prevents Tailwind's CSS reset from interfering with WordPress admin styles. The `important` keyword ensures your utility classes win over WordPress defaults within the scope.
+>
+> **Portal-based components (Modals, Popovers):** plugin-ui's `Modal` component automatically creates a `.pui-root` portal container on `document.body`. If you use Tailwind utility classes inside portaled content, add `.pui-root` as an additional scope:
+> ```css
+> #my-plugin-app,
+> .pui-root {
+>   @import "tailwindcss/preflight.css" layer(base);
+>   @import "tailwindcss/utilities.css" layer(utilities) important;
+> }
+> ```
+>
 > **Why is `@theme inline` needed?** Tailwind v4 needs to know about your CSS variables to generate utilities like `bg-primary`, `text-muted-foreground`, etc. The `@theme inline` block maps `--primary` (set by ThemeProvider) to `--color-primary` (used by Tailwind).
 
 ### 6. PHP Asset Enqueuing
