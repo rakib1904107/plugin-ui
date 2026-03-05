@@ -27,497 +27,517 @@ export default meta;
 type Story = StoryObj<typeof meta>;
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Basic stories
+// Story components (hooks must be called inside PascalCase components)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const Default: Story = {
-  name: "Default (button trigger)",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>();
-    return <DatePicker value={date} onChange={setDate} />;
-  },
-};
+function DefaultDemo() {
+  const [date, setDate] = React.useState<Date | undefined>();
+  return <DatePicker value={date} onChange={setDate} />;
+}
 
-export const WithInitialDate: Story = {
-  name: "With initial date",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    return <DatePicker value={date} onChange={setDate} />;
-  },
-};
+function WithInitialDateDemo() {
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  return <DatePicker value={date} onChange={setDate} />;
+}
 
-export const CustomPlaceholder: Story = {
-  name: "Custom placeholder",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>();
-    return (
-      <DatePicker
-        value={date}
-        onChange={setDate}
-        placeholder="Select your birth date"
-      />
-    );
-  },
-};
+function CustomPlaceholderDemo() {
+  const [date, setDate] = React.useState<Date | undefined>();
+  return (
+    <DatePicker
+      value={date}
+      onChange={setDate}
+      placeholder="Select your birth date"
+    />
+  );
+}
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Custom triggers — the core flexibility story
-// ─────────────────────────────────────────────────────────────────────────────
+function CustomButtonTriggerDemo() {
+  const [date, setDate] = React.useState<Date | undefined>();
+  return (
+    <DatePicker
+      value={date}
+      onChange={setDate}
+      trigger={({ value }) => (
+        <Button variant="outline" className="w-[200px] gap-2">
+          <CalendarIcon className="size-4" />
+          {value ?? "Choose a date"}
+        </Button>
+      )}
+    />
+  );
+}
 
-export const CustomButtonTrigger: Story = {
-  name: "Custom trigger — outline button",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>();
-    return (
+function GhostButtonTriggerDemo() {
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  return (
+    <DatePicker
+      value={date}
+      onChange={setDate}
+      trigger={({ value }) => (
+        <Button variant="ghost" size="sm" className="gap-1.5">
+          <CalendarIcon className="size-3.5" />
+          {value ?? "Select"}
+        </Button>
+      )}
+    />
+  );
+}
+
+function InputTriggerDemo() {
+  const [date, setDate] = React.useState<Date | undefined>();
+  return (
+    <div className="space-y-1.5">
+      <Label>Appointment date</Label>
       <DatePicker
         value={date}
         onChange={setDate}
         trigger={({ value }) => (
-          <Button variant="outline" className="w-[200px] gap-2">
+          <div className="relative">
+            <Input
+              readOnly
+              value={value ?? ""}
+              placeholder="YYYY-MM-DD"
+              className="pr-10 cursor-pointer"
+            />
+            <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
+          </div>
+        )}
+      />
+    </div>
+  );
+}
+
+function BadgeTriggerDemo() {
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  return (
+    <div className="space-y-2">
+      <p className="text-muted-foreground text-sm">Due date:</p>
+      <DatePicker
+        value={date}
+        onChange={setDate}
+        trigger={({ value }) => (
+          <Badge variant="secondary" className="cursor-pointer gap-1 hover:bg-secondary/80">
+            <CalendarIcon className="size-3" />
+            {value ?? "Set date"}
+          </Badge>
+        )}
+      />
+    </div>
+  );
+}
+
+function IconOnlyTriggerDemo() {
+  const [date, setDate] = React.useState<Date | undefined>();
+  return (
+    <div className="flex items-center gap-2">
+      <span className="text-sm text-muted-foreground">
+        {date ? date.toLocaleDateString() : "No date selected"}
+      </span>
+      <DatePicker
+        value={date}
+        onChange={setDate}
+        trigger={() => (
+          <Button variant="outline" size="icon-sm">
             <CalendarIcon className="size-4" />
-            {value ?? "Choose a date"}
           </Button>
         )}
       />
-    );
-  },
-};
+    </div>
+  );
+}
 
-export const GhostButtonTrigger: Story = {
-  name: "Custom trigger — ghost button",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    return (
+function CustomDisplayFormatDemo() {
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  return (
+    <div className="space-y-3">
+      <div>
+        <p className="text-xs text-muted-foreground mb-1">
+          Format: &quot;F j, Y&quot; (January 1, 2024)
+        </p>
+        <DatePicker value={date} onChange={setDate} displayFormat="F j, Y" />
+      </div>
+      <div>
+        <p className="text-xs text-muted-foreground mb-1">
+          Format: &quot;d/m/Y&quot; (01/01/2024)
+        </p>
+        <DatePicker value={date} onChange={setDate} displayFormat="d/m/Y" />
+      </div>
+      <div>
+        <p className="text-xs text-muted-foreground mb-1">
+          Format: &quot;m-d-Y&quot; (01-01-2024)
+        </p>
+        <DatePicker value={date} onChange={setDate} displayFormat="m-d-Y" />
+      </div>
+    </div>
+  );
+}
+
+function FrenchLocaleDemo() {
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  return (
+    <DatePicker
+      value={date}
+      onChange={setDate}
+      locale={fr}
+      displayFormat="d F Y"
+    />
+  );
+}
+
+function GermanLocaleDemo() {
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  return (
+    <DatePicker
+      value={date}
+      onChange={setDate}
+      locale={de}
+      displayFormat="j. F Y"
+    />
+  );
+}
+
+function ArabicLocaleDemo() {
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  return (
+    <DatePicker
+      value={date}
+      onChange={setDate}
+      locale={ar}
+      wpLocale="ar"
+      displayFormat="Y-m-d"
+    />
+  );
+}
+
+function FutureDatesOnlyDemo() {
+  const today = new Date();
+  const [date, setDate] = React.useState<Date | undefined>();
+  return (
+    <DatePicker
+      value={date}
+      onChange={setDate}
+      placeholder="Select a future date"
+      calendarProps={{ disabled: { before: today } }}
+    />
+  );
+}
+
+function ConstrainedRangeDemo() {
+  const today = new Date();
+  const inThreeMonths = new Date(today);
+  inThreeMonths.setMonth(today.getMonth() + 3);
+  const [date, setDate] = React.useState<Date | undefined>();
+  return (
+    <DatePicker
+      value={date}
+      onChange={setDate}
+      placeholder="Next 3 months only"
+      calendarProps={{
+        disabled: { before: today, after: inThreeMonths },
+      }}
+    />
+  );
+}
+
+function ControlledOpenDemo() {
+  const [date, setDate] = React.useState<Date | undefined>();
+  const [open, setOpen] = React.useState(false);
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center gap-2">
+        <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
+          Open calendar
+        </Button>
+        {date && (
+          <Button size="sm" variant="ghost" onClick={() => setDate(undefined)}>
+            Clear
+          </Button>
+        )}
+      </div>
       <DatePicker
         value={date}
         onChange={setDate}
+        open={open}
+        onOpenChange={setOpen}
         trigger={({ value }) => (
-          <Button variant="ghost" size="sm" className="gap-1.5">
-            <CalendarIcon className="size-3.5" />
-            {value ?? "Select"}
-          </Button>
+          <div className="text-sm text-muted-foreground">
+            Selected: <strong>{value ?? "none"}</strong>
+          </div>
         )}
       />
-    );
-  },
-};
+    </div>
+  );
+}
 
-export const InputTrigger: Story = {
-  name: "Custom trigger — input field",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>();
-    return (
+function RangePickerDefaultDemo() {
+  const [range, setRange] = React.useState<DateRange | undefined>();
+  return <DateRangePicker mode="range" value={range} onChange={setRange} />;
+}
+
+function RangePickerWithInitialValueDemo() {
+  const today = new Date();
+  const nextWeek = new Date(today);
+  nextWeek.setDate(today.getDate() + 7);
+  const [range, setRange] = React.useState<DateRange | undefined>({
+    from: today,
+    to: nextWeek,
+  });
+  return <DateRangePicker mode="range" value={range} onChange={setRange} />;
+}
+
+function RangePickerCustomTriggerDemo() {
+  const [range, setRange] = React.useState<DateRange | undefined>();
+  return (
+    <DateRangePicker
+      mode="range"
+      value={range}
+      onChange={setRange}
+      trigger={({ value }) => (
+        <div className="flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer hover:bg-accent">
+          <CalendarIcon className="size-4 text-muted-foreground" />
+          <span className="text-sm">
+            {value ?? <span className="text-muted-foreground">Select date range</span>}
+          </span>
+        </div>
+      )}
+    />
+  );
+}
+
+function RangePickerCustomSeparatorDemo() {
+  const today = new Date();
+  const nextWeek = new Date(today);
+  nextWeek.setDate(today.getDate() + 7);
+  const [range, setRange] = React.useState<DateRange | undefined>({
+    from: today,
+    to: nextWeek,
+  });
+  return (
+    <DateRangePicker
+      mode="range"
+      value={range}
+      onChange={setRange}
+      separator="–"
+    />
+  );
+}
+
+function RangePickerLocaleDemo() {
+  const [range, setRange] = React.useState<DateRange | undefined>();
+  return (
+    <DateRangePicker
+      mode="range"
+      value={range}
+      onChange={setRange}
+      locale={fr}
+    />
+  );
+}
+
+function FormIntegrationDemo() {
+  const [startDate, setStartDate] = React.useState<Date | undefined>();
+  const [endDate, setEndDate] = React.useState<Date | undefined>();
+
+  return (
+    <form className="space-y-4 w-[320px]" onSubmit={(e) => e.preventDefault()}>
       <div className="space-y-1.5">
-        <Label>Appointment date</Label>
+        <Label>Start date</Label>
         <DatePicker
-          value={date}
-          onChange={setDate}
+          value={startDate}
+          onChange={setStartDate}
+          placeholder="Select start date"
           trigger={({ value }) => (
-            <div className="relative">
+            <div className="relative w-full">
               <Input
                 readOnly
                 value={value ?? ""}
                 placeholder="YYYY-MM-DD"
-                className="pr-10 cursor-pointer"
+                className="pr-10 cursor-pointer w-full"
               />
               <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
             </div>
           )}
         />
       </div>
-    );
-  },
-};
 
-export const BadgeTrigger: Story = {
-  name: "Custom trigger — badge",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    return (
-      <div className="space-y-2">
-        <p className="text-muted-foreground text-sm">Due date:</p>
+      <div className="space-y-1.5">
+        <Label>End date</Label>
         <DatePicker
-          value={date}
-          onChange={setDate}
+          value={endDate}
+          onChange={setEndDate}
+          placeholder="Select end date"
+          calendarProps={{
+            disabled: startDate ? { before: startDate } : undefined,
+          }}
           trigger={({ value }) => (
-            <Badge variant="secondary" className="cursor-pointer gap-1 hover:bg-secondary/80">
-              <CalendarIcon className="size-3" />
-              {value ?? "Set date"}
-            </Badge>
-          )}
-        />
-      </div>
-    );
-  },
-};
-
-export const IconOnlyTrigger: Story = {
-  name: "Custom trigger — icon only",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>();
-    return (
-      <div className="flex items-center gap-2">
-        <span className="text-sm text-muted-foreground">
-          {date ? date.toLocaleDateString() : "No date selected"}
-        </span>
-        <DatePicker
-          value={date}
-          onChange={setDate}
-          trigger={() => (
-            <Button variant="outline" size="icon-sm">
-              <CalendarIcon className="size-4" />
-            </Button>
-          )}
-        />
-      </div>
-    );
-  },
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Display format
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const CustomDisplayFormat: Story = {
-  name: "Custom display format",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    return (
-      <div className="space-y-3">
-        <div>
-          <p className="text-xs text-muted-foreground mb-1">Format: "F j, Y" (January 1, 2024)</p>
-          <DatePicker value={date} onChange={setDate} displayFormat="F j, Y" />
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-1">Format: "d/m/Y" (01/01/2024)</p>
-          <DatePicker value={date} onChange={setDate} displayFormat="d/m/Y" />
-        </div>
-        <div>
-          <p className="text-xs text-muted-foreground mb-1">Format: "m-d-Y" (01-01-2024)</p>
-          <DatePicker value={date} onChange={setDate} displayFormat="m-d-Y" />
-        </div>
-      </div>
-    );
-  },
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Locale
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const FrenchLocale: Story = {
-  name: "Locale — French",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    return (
-      <DatePicker
-        value={date}
-        onChange={setDate}
-        locale={fr}
-        displayFormat="d F Y"
-      />
-    );
-  },
-};
-
-export const GermanLocale: Story = {
-  name: "Locale — German",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    return (
-      <DatePicker
-        value={date}
-        onChange={setDate}
-        locale={de}
-        displayFormat="j. F Y"
-      />
-    );
-  },
-};
-
-export const ArabicLocale: Story = {
-  name: "Locale — Arabic (RTL)",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    return (
-      <DatePicker
-        value={date}
-        onChange={setDate}
-        locale={ar}
-        wpLocale="ar"
-        displayFormat="Y-m-d"
-      />
-    );
-  },
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Disabled / constrained
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const FutureDatesOnly: Story = {
-  name: "Future dates only",
-  render: () => {
-    const today = new Date();
-    const [date, setDate] = React.useState<Date | undefined>();
-    return (
-      <DatePicker
-        value={date}
-        onChange={setDate}
-        placeholder="Select a future date"
-        calendarProps={{ disabled: { before: today } }}
-      />
-    );
-  },
-};
-
-export const DateRange_Constrained: Story = {
-  name: "Constrained date range",
-  render: () => {
-    const today = new Date();
-    const inThreeMonths = new Date(today);
-    inThreeMonths.setMonth(today.getMonth() + 3);
-    const [date, setDate] = React.useState<Date | undefined>();
-    return (
-      <DatePicker
-        value={date}
-        onChange={setDate}
-        placeholder="Next 3 months only"
-        calendarProps={{
-          disabled: { before: today, after: inThreeMonths },
-        }}
-      />
-    );
-  },
-};
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Controlled open state
-// ─────────────────────────────────────────────────────────────────────────────
-
-export const ControlledOpen: Story = {
-  name: "Controlled open state",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>();
-    const [open, setOpen] = React.useState(false);
-    return (
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Button size="sm" variant="outline" onClick={() => setOpen(true)}>
-            Open calendar
-          </Button>
-          {date && (
-            <Button size="sm" variant="ghost" onClick={() => setDate(undefined)}>
-              Clear
-            </Button>
-          )}
-        </div>
-        <DatePicker
-          value={date}
-          onChange={setDate}
-          open={open}
-          onOpenChange={setOpen}
-          trigger={({ value }) => (
-            <div className="text-sm text-muted-foreground">
-              Selected: <strong>{value ?? "none"}</strong>
+            <div className="relative w-full">
+              <Input
+                readOnly
+                value={value ?? ""}
+                placeholder="YYYY-MM-DD"
+                className="pr-10 cursor-pointer w-full"
+              />
+              <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
             </div>
           )}
         />
       </div>
-    );
-  },
-};
+
+      <Button type="submit" className="w-full">
+        Submit
+      </Button>
+    </form>
+  );
+}
+
+function DropdownNavigationDemo() {
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  return (
+    <DatePicker
+      value={date}
+      onChange={setDate}
+      calendarProps={{
+        captionLayout: "dropdown",
+        fromYear: 2000,
+        toYear: 2030,
+      }}
+    />
+  );
+}
+
+function ExplicitTimezoneDemo() {
+  const [date, setDate] = React.useState<Date | undefined>(new Date());
+  return (
+    <div className="space-y-2">
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Clock className="size-3.5" />
+        <span>Timezone: America/New_York</span>
+      </div>
+      <DatePicker
+        value={date}
+        onChange={setDate}
+        wpTimezone="America/New_York"
+        displayFormat="Y-m-d"
+      />
+    </div>
+  );
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
-// DateRangePicker
+// Stories
 // ─────────────────────────────────────────────────────────────────────────────
+
+export const Default: Story = {
+  name: "Default (button trigger)",
+  render: () => <DefaultDemo />,
+};
+
+export const WithInitialDate: Story = {
+  name: "With initial date",
+  render: () => <WithInitialDateDemo />,
+};
+
+export const CustomPlaceholder: Story = {
+  name: "Custom placeholder",
+  render: () => <CustomPlaceholderDemo />,
+};
+
+export const CustomButtonTrigger: Story = {
+  name: "Custom trigger — outline button",
+  render: () => <CustomButtonTriggerDemo />,
+};
+
+export const GhostButtonTrigger: Story = {
+  name: "Custom trigger — ghost button",
+  render: () => <GhostButtonTriggerDemo />,
+};
+
+export const InputTrigger: Story = {
+  name: "Custom trigger — input field",
+  render: () => <InputTriggerDemo />,
+};
+
+export const BadgeTrigger: Story = {
+  name: "Custom trigger — badge",
+  render: () => <BadgeTriggerDemo />,
+};
+
+export const IconOnlyTrigger: Story = {
+  name: "Custom trigger — icon only",
+  render: () => <IconOnlyTriggerDemo />,
+};
+
+export const CustomDisplayFormat: Story = {
+  name: "Custom display format",
+  render: () => <CustomDisplayFormatDemo />,
+};
+
+export const FrenchLocale: Story = {
+  name: "Locale — French",
+  render: () => <FrenchLocaleDemo />,
+};
+
+export const GermanLocale: Story = {
+  name: "Locale — German",
+  render: () => <GermanLocaleDemo />,
+};
+
+export const ArabicLocale: Story = {
+  name: "Locale — Arabic (RTL)",
+  render: () => <ArabicLocaleDemo />,
+};
+
+export const FutureDatesOnly: Story = {
+  name: "Future dates only",
+  render: () => <FutureDatesOnlyDemo />,
+};
+
+export const DateRange_Constrained: Story = {
+  name: "Constrained date range",
+  render: () => <ConstrainedRangeDemo />,
+};
+
+export const ControlledOpen: Story = {
+  name: "Controlled open state",
+  render: () => <ControlledOpenDemo />,
+};
 
 export const RangePickerDefault: Story = {
   name: "Range picker — default",
-  render: () => {
-    const [range, setRange] = React.useState<DateRange | undefined>();
-    return <DateRangePicker mode="range" value={range} onChange={setRange} />;
-  },
+  render: () => <RangePickerDefaultDemo />,
 };
 
 export const RangePickerWithInitialValue: Story = {
   name: "Range picker — initial value",
-  render: () => {
-    const today = new Date();
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-    const [range, setRange] = React.useState<DateRange | undefined>({
-      from: today,
-      to: nextWeek,
-    });
-    return <DateRangePicker mode="range" value={range} onChange={setRange} />;
-  },
+  render: () => <RangePickerWithInitialValueDemo />,
 };
 
 export const RangePickerCustomTrigger: Story = {
   name: "Range picker — custom trigger",
-  render: () => {
-    const [range, setRange] = React.useState<DateRange | undefined>();
-    return (
-      <DateRangePicker
-        mode="range"
-        value={range}
-        onChange={setRange}
-        trigger={({ value }) => (
-          <div className="flex items-center gap-2 rounded-md border px-3 py-2 cursor-pointer hover:bg-accent">
-            <CalendarIcon className="size-4 text-muted-foreground" />
-            <span className="text-sm">
-              {value ?? <span className="text-muted-foreground">Select date range</span>}
-            </span>
-          </div>
-        )}
-      />
-    );
-  },
+  render: () => <RangePickerCustomTriggerDemo />,
 };
 
 export const RangePickerCustomSeparator: Story = {
   name: "Range picker — custom separator",
-  render: () => {
-    const today = new Date();
-    const nextWeek = new Date(today);
-    nextWeek.setDate(today.getDate() + 7);
-    const [range, setRange] = React.useState<DateRange | undefined>({
-      from: today,
-      to: nextWeek,
-    });
-    return (
-      <DateRangePicker
-        mode="range"
-        value={range}
-        onChange={setRange}
-        separator="–"
-      />
-    );
-  },
+  render: () => <RangePickerCustomSeparatorDemo />,
 };
 
 export const RangePickerLocale: Story = {
   name: "Range picker — French locale",
-  render: () => {
-    const [range, setRange] = React.useState<DateRange | undefined>();
-    return (
-      <DateRangePicker
-        mode="range"
-        value={range}
-        onChange={setRange}
-        locale={fr}
-      />
-    );
-  },
+  render: () => <RangePickerLocaleDemo />,
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Form integration
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const FormIntegration: Story = {
   name: "Form integration example",
-  render: () => {
-    const [startDate, setStartDate] = React.useState<Date | undefined>();
-    const [endDate, setEndDate] = React.useState<Date | undefined>();
-
-    return (
-      <form className="space-y-4 w-[320px]" onSubmit={(e) => e.preventDefault()}>
-        <div className="space-y-1.5">
-          <Label>Start date</Label>
-          <DatePicker
-            value={startDate}
-            onChange={setStartDate}
-            placeholder="Select start date"
-            trigger={({ value }) => (
-              <div className="relative w-full">
-                <Input
-                  readOnly
-                  value={value ?? ""}
-                  placeholder="YYYY-MM-DD"
-                  className="pr-10 cursor-pointer w-full"
-                />
-                <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-              </div>
-            )}
-          />
-        </div>
-
-        <div className="space-y-1.5">
-          <Label>End date</Label>
-          <DatePicker
-            value={endDate}
-            onChange={setEndDate}
-            placeholder="Select end date"
-            calendarProps={{
-              disabled: startDate ? { before: startDate } : undefined,
-            }}
-            trigger={({ value }) => (
-              <div className="relative w-full">
-                <Input
-                  readOnly
-                  value={value ?? ""}
-                  placeholder="YYYY-MM-DD"
-                  className="pr-10 cursor-pointer w-full"
-                />
-                <CalendarIcon className="absolute right-3 top-1/2 -translate-y-1/2 size-4 text-muted-foreground pointer-events-none" />
-              </div>
-            )}
-          />
-        </div>
-
-        <Button type="submit" className="w-full">
-          Submit
-        </Button>
-      </form>
-    );
-  },
+  render: () => <FormIntegrationDemo />,
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Dropdown navigation
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const DropdownNavigation: Story = {
   name: "With dropdown navigation",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    return (
-      <DatePicker
-        value={date}
-        onChange={setDate}
-        calendarProps={{
-          captionLayout: "dropdown",
-          fromYear: 2000,
-          toYear: 2030,
-        }}
-      />
-    );
-  },
+  render: () => <DropdownNavigationDemo />,
 };
-
-// ─────────────────────────────────────────────────────────────────────────────
-// WordPress timezone demo
-// ─────────────────────────────────────────────────────────────────────────────
 
 export const WithExplicitTimezone: Story = {
   name: "Explicit WordPress timezone",
-  render: () => {
-    const [date, setDate] = React.useState<Date | undefined>(new Date());
-    return (
-      <div className="space-y-2">
-        <div className="flex items-center gap-2 text-xs text-muted-foreground">
-          <Clock className="size-3.5" />
-          <span>Timezone: America/New_York</span>
-        </div>
-        <DatePicker
-          value={date}
-          onChange={setDate}
-          wpTimezone="America/New_York"
-          displayFormat="Y-m-d"
-        />
-      </div>
-    );
-  },
+  render: () => <ExplicitTimezoneDemo />,
 };

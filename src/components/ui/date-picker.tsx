@@ -5,7 +5,7 @@ import { ChevronDown } from "lucide-react";
 
 import { cn } from "@/lib/utils";
 import { Button } from "./button";
-import { Calendar, type CalendarProps } from "./calendar";
+import { Calendar } from "./calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "./popover";
 import {
   getWordPressDateFormat,

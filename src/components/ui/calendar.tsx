@@ -6,7 +6,7 @@ import { ChevronLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buttonVariants } from "./button";
 import { getWordPressTimezone, getWordPressLocale, createWordPressLocale } from "@/lib/wordpress-date";
-import { wpLocaleToDayPickerKey, isWpLocaleRtl } from "@/lib/locale-map";
+import { isWpLocaleRtl } from "@/lib/locale-map";
 
 // Use React.ComponentProps to preserve the full discriminated-union signature of
 // DayPicker (Omit on a union type collapses it and loses `selected`/`onSelect`).
