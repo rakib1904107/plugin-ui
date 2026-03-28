@@ -596,6 +596,138 @@ export const Loading: StoryFn = () => {
 };
 Loading.storyName = "Loading State";
 
+/** DataViews with only filters and search — no tabs. Click "Add Filter" to add filters. */
+export const FiltersOnly: StoryFn = () => {
+  const [view, setView] = useState<DataViewState>(createDefaultView(["name", "email", "status", "role", "joinedAt"]));
+  const [nameFilter, setNameFilter] = useState("");
+  const [statusFilter, setStatusFilter] = useState("");
+  const [roleFilter, setRoleFilter] = useState("");
+
+  let filteredUsers = [...allUsers];
+
+  // Apply search
+  const searchTerm = view.search ?? "";
+  if (searchTerm) {
+    filteredUsers = filteredUsers.filter(user =>
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      user.email.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  }
+
+  if (nameFilter) {
+    filteredUsers = filteredUsers.filter(user =>
+      user.name.toLowerCase().includes(nameFilter.toLowerCase())
+    );
+  }
+
+  if (statusFilter) {
+    filteredUsers = filteredUsers.filter(user => user.status === statusFilter);
+  }
+
+  if (roleFilter) {
+    filteredUsers = filteredUsers.filter(user => user.role === roleFilter);
+  }
+
+  const paginatedData = paginateData(filteredUsers, view);
+
+  const filterFields: DataViewFilterField[] = [
+    {
+      id: "name",
+      label: "Name",
+      field: (
+        <Input
+          placeholder="Filter by name..."
+          value={nameFilter}
+          onChange={(e) => {
+            setNameFilter(e.target.value);
+            setView(prev => ({ ...prev, page: 1 }));
+          }}
+          className="w-48"
+        />
+      ),
+    },
+    {
+      id: "status",
+      label: "Status",
+      field: (
+        <Select
+          value={statusFilter}
+          onValueChange={(value) => {
+            setStatusFilter(value ?? "");
+            setView(prev => ({ ...prev, page: 1 }));
+          }}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Select status" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="active">Active</SelectItem>
+            <SelectItem value="inactive">Inactive</SelectItem>
+            <SelectItem value="pending">Pending</SelectItem>
+          </SelectContent>
+        </Select>
+      ),
+    },
+    {
+      id: "role",
+      label: "Role",
+      field: (
+        <Select
+          value={roleFilter}
+          onValueChange={(value) => {
+            setRoleFilter(value ?? "");
+            setView(prev => ({ ...prev, page: 1 }));
+          }}
+        >
+          <SelectTrigger className="w-40">
+            <SelectValue placeholder="Select role" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Admin">Admin</SelectItem>
+            <SelectItem value="Editor">Editor</SelectItem>
+            <SelectItem value="Viewer">Viewer</SelectItem>
+            <SelectItem value="Manager">Manager</SelectItem>
+          </SelectContent>
+        </Select>
+      ),
+    },
+  ];
+
+  return (
+    <div className="p-4">
+      <DataViews<User>
+        namespace="dataviews-demo"
+        data={paginatedData}
+        fields={fields}
+        view={view}
+        onChangeView={setView}
+        actions={actions}
+        paginationInfo={{
+          totalItems: filteredUsers.length,
+          totalPages: getTotalPages(filteredUsers.length, view.perPage),
+        }}
+        getItemId={(item) => item.id}
+        filter={{
+          fields: filterFields,
+          onReset: () => {
+            setNameFilter("");
+            setStatusFilter("");
+            setRoleFilter("");
+            setView(prev => ({ ...prev, page: 1 }));
+          },
+          onFilterRemove: (filterId) => {
+            if (filterId === "name") setNameFilter("");
+            if (filterId === "status") setStatusFilter("");
+            if (filterId === "role") setRoleFilter("");
+            setView(prev => ({ ...prev, page: 1 }));
+          },
+        }}
+      />
+    </div>
+  );
+};
+FiltersOnly.storyName = "Filters Only";
+
 /** Complete example with all features: tabs, filters, search, selection, and pagination. */
 export const FullFeatured: StoryFn = () => {
   const [view, setView] = useState<DataViewState>(createDefaultView(["name", "email", "status", "role", "joinedAt"]));
@@ -827,7 +959,7 @@ export const LayoutCustomComponent: StoryFn = () => {
     type: "table",
     search: "",
     page: 1,
-    perPage: 6,
+    perPage: 10,
     fields: ["name", "email", "status", "role"],
   });
 

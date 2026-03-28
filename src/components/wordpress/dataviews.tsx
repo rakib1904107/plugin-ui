@@ -213,7 +213,7 @@ const FilterItems = ({
                             return null;
                         }
                         return (
-                            <div className="relative inline-flex items-center" key={id}>
+                            <div className="relative flex items-center gap-2" key={id}>
                                 <div className="[&>input]:pr-8 [&>select]:pr-8">{field.field}</div>
                                 <span
                                     role="button"
@@ -270,6 +270,7 @@ interface Tab {
     value: string;
     className?: string;
     icon?: React.ComponentType<{ className?: string }>;
+    count?: number;
     disabled?: boolean;
 }
 
@@ -446,41 +447,42 @@ export function DataViews<Item>(props: DataViewsProps<Item>) {
         }
     }, [activeFilterCount]);
 
-    const tabsWithFilterButton =
-        filter?.fields && tabs && filter.fields.length > 0
-            ? (() => {
-                  const existing = tabs?.headerContent || tabs?.headerSlot || [];
-                  const newButton = (
-                      <button
-                          type="button"
-                          ref={setButtonRef}
-                          title="Filter"
-                          className={cn(
-                              'relative inline-flex items-center gap-2 rounded-md bg-transparent! hover:bg-transparent! px-3 py-1.5 text-sm hover:text-primary',
-                              showFilters ? 'text-primary' : 'text-muted-foreground'
-                          )}
-                          onClick={() => {
-                              if (activeFilterCount > 0) {
-                                  setShowFilters((prev) => !prev);
-                              } else {
-                                  setOpenSelectorSignal((s) => s + 1);
-                              }
-                          }}>
-                          <Funnel size={20} />
-                          {activeFilterCount > 0 && (
-                              <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
-                                  {activeFilterCount}
-                              </span>
-                          )}
-                      </button>
-                  );
+    const hasFilters = (filter?.fields?.length ?? 0) > 0;
 
-                  return {
-                      ...tabs,
-                      headerContent: [...existing, newButton]
-                  };
-              })()
-            : tabs;
+    const tabsWithFilterButton = hasFilters
+        ? (() => {
+              const existing = tabs?.headerContent || tabs?.headerSlot || [];
+              const newButton = (
+                  <button
+                      type="button"
+                      ref={setButtonRef}
+                      title="Filter"
+                      className={cn(
+                          'relative inline-flex items-center gap-2 rounded-md bg-transparent! hover:bg-transparent! px-3 py-1.5 text-sm hover:text-primary',
+                          showFilters ? 'text-primary' : 'text-muted-foreground'
+                      )}
+                      onClick={() => {
+                          if (activeFilterCount > 0) {
+                              setShowFilters((prev) => !prev);
+                          } else {
+                              setOpenSelectorSignal((s) => s + 1);
+                          }
+                      }}>
+                      <Funnel size={20} />
+                      {activeFilterCount > 0 && (
+                          <span className="absolute -top-1.5 -right-1.5 flex h-5 w-5 items-center justify-center rounded-full bg-primary text-[10px] font-medium text-primary-foreground">
+                              {activeFilterCount}
+                          </span>
+                      )}
+                  </button>
+              );
+
+              return {
+                  ...tabs,
+                  headerContent: [...existing, newButton]
+              };
+          })()
+        : tabs;
 
     const resolvedTabsConfig = tabsWithFilterButton || tabs;
 
@@ -502,6 +504,7 @@ export function DataViews<Item>(props: DataViewsProps<Item>) {
             ? Math.ceil(paginationDetails.totalItems / perPage)
             : 0;
     const shouldShowPagination = (typeof explicitTotalPages === 'number' ? explicitTotalPages : computedTotalPages) > 1;
+    const showFullWidthHeader = !tabItems.length && (search || hasFilters);
 
     const tableNameSpace = kebabCase(namespace);
 
@@ -521,7 +524,7 @@ export function DataViews<Item>(props: DataViewsProps<Item>) {
                 <Search size={18} className="text-muted-foreground" />
             </InputGroupAddon>
             <InputGroupInput
-                className="border! border-border!"
+                className="border-none!"
                 placeholder={searchPlaceholder}
                 value={searchTerm}
                 onChange={(event) =>
@@ -583,7 +586,10 @@ export function DataViews<Item>(props: DataViewsProps<Item>) {
                                                         tab.className
                                                     )}>
                                                     {tab.icon && <tab.icon className="size-4" />}
-                                                    {tab.label}
+                                                    {tab.label}{' '}
+                                                    {tab.count !== undefined && (
+                                                        <span className="text-muted-foreground">({tab.count})</span>
+                                                    )}
                                                 </TabsTrigger>
                                             ))}
                                         </TabsList>
@@ -592,7 +598,7 @@ export function DataViews<Item>(props: DataViewsProps<Item>) {
                                 <div
                                     className={cn(
                                         'flex items-center gap-2',
-                                        !tabItems.length && search && 'justify-end w-full py-2'
+                                        showFullWidthHeader && 'justify-end w-full py-2'
                                     )}>
                                     {searchInput}
                                     {headerContent.map((node, index) => (
@@ -601,7 +607,7 @@ export function DataViews<Item>(props: DataViewsProps<Item>) {
                                 </div>
                             </div>
 
-                            {filter && filter.fields && filter.fields.length > 0 && (
+                            {hasFilters && (
                                 <div
                                     className={`transition-all flex w-full justify-between px-4 my-4 bg-background ${
                                         showFilters ? '' : 'hidden!'
