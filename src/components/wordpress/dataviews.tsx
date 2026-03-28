@@ -11,8 +11,20 @@ import {
 import { __ } from '@wordpress/i18n';
 import { FileSearch, Funnel, Plus, Search, X } from 'lucide-react';
 import type React from 'react';
-import { Fragment, useEffect, useState } from 'react';
-import { InputGroup, InputGroupAddon, InputGroupInput } from '../ui';
+import { Fragment, useCallback, useEffect, useState } from 'react';
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    InputGroup,
+    InputGroupAddon,
+    InputGroupInput
+} from '../ui';
 import { Button } from '../ui/button';
 import { Tabs, TabsList, TabsTrigger } from '../ui/tabs';
 
@@ -90,13 +102,23 @@ function getQueryParamsFromView(view: View, tabViewKey: string): Record<string, 
     return params;
 }
 
-// Re-export types from @wordpress/dataviews with prefixed names to avoid conflicts
-export type {
-    Action as DataViewAction,
-    Field as DataViewField,
-    SupportedLayouts as DataViewLayouts,
-    View as DataViewState
+// Extended action type with automatic destructive confirmation support
+export type DestructiveActionConfig = {
+    /** When true, shows an AlertDialog confirmation before executing the action callback. */
+    isDestructive?: boolean;
+    /** Custom title for the confirmation dialog. Defaults to the action label. */
+    confirmTitle?: string;
+    /** Custom message for the confirmation dialog. */
+    confirmMessage?: string;
+    /** Custom label for the confirm button. Defaults to the action label. */
+    confirmButtonLabel?: string;
+    /** Custom label for the cancel button. Defaults to "Cancel". */
+    cancelButtonLabel?: string;
 };
+
+// Re-export types from @wordpress/dataviews with prefixed names to avoid conflicts
+export type DataViewAction<Item> = Action<Item> & DestructiveActionConfig;
+export type { Field as DataViewField, SupportedLayouts as DataViewLayouts, View as DataViewState };
 
 // Filter types
 export interface DataViewFilterField {
@@ -299,7 +321,7 @@ export type DataViewsProps<Item> = {
     search?: boolean;
     searchLabel?: string;
     searchPlaceholder?: string;
-    actions?: Action<Item>[];
+    actions?: DataViewAction<Item>[];
     data: Item[];
     isLoading?: boolean;
     paginationInfo: {
@@ -368,6 +390,54 @@ export function DataViews<Item>(props: DataViewsProps<Item>) {
         children,
         ...dataViewsTableProps
     } = props;
+
+    // --- Destructive action confirmation via AlertDialog ---
+    const [pendingDestructiveAction, setPendingDestructiveAction] = useState<{
+        action: DataViewAction<Item> & { callback: (...args: any[]) => void };
+        items: Item[];
+        context: any;
+    } | null>(null);
+
+    const handleDestructiveConfirm = useCallback(() => {
+        if (pendingDestructiveAction) {
+            pendingDestructiveAction.action.callback(pendingDestructiveAction.items, pendingDestructiveAction.context);
+            setPendingDestructiveAction(null);
+        }
+    }, [pendingDestructiveAction]);
+
+    const handleDestructiveCancel = useCallback(() => {
+        setPendingDestructiveAction(null);
+    }, []);
+
+    /**
+     * Wrap destructive ActionButton actions so they show an AlertDialog
+     * confirmation before executing the original callback.
+     */
+    const wrapDestructiveActions = useCallback(
+        (actions: DataViewAction<Item>[] | undefined): Action<Item>[] | undefined => {
+            if (!actions) return actions;
+
+            return actions.map((action) => {
+                if (!action.isDestructive || !('callback' in action) || typeof action.callback !== 'function') {
+                    return action as Action<Item>;
+                }
+
+                const originalCallback = action.callback;
+                return {
+                    ...action,
+                    callback: (items: Item[], context: any) => {
+                        setPendingDestructiveAction({
+                            action: { ...action, callback: originalCallback } as any,
+                            items,
+                            context
+                        });
+                    }
+                } as Action<Item>;
+            });
+        },
+        []
+    );
+
     /**
      * Disable sorting & column hiding globally
      */
@@ -405,17 +475,16 @@ export function DataViews<Item>(props: DataViewsProps<Item>) {
     };
 
     // Run WordPress filter hooks on table elements (only applies when wp.hooks exists)
+    const filteredActions = applyFiltersToTableElements(namespace, 'actions', baseProps.actions, props) as
+        | DataViewAction<Item>[]
+        | undefined;
+
     const filteredProps = {
         ...baseProps,
         data: applyFiltersToTableElements(namespace, 'data', baseProps.data, props) as typeof baseProps.data,
         view: applyFiltersToTableElements(namespace, 'view', baseProps.view, props) as typeof baseProps.view,
         fields: applyFiltersToTableElements(namespace, 'fields', baseProps.fields, props) as typeof baseProps.fields,
-        actions: applyFiltersToTableElements(
-            namespace,
-            'actions',
-            baseProps.actions,
-            props
-        ) as typeof baseProps.actions,
+        actions: wrapDestructiveActions(filteredActions),
         defaultLayouts: applyFiltersToTableElements(
             namespace,
             'layouts',
@@ -540,7 +609,7 @@ export function DataViews<Item>(props: DataViewsProps<Item>) {
 
     return (
         <div
-            className={cn('pui-root-dataviews pui-root', children && 'custom-layout')}
+            className={cn('pui-root-dataviews', children && 'custom-layout')}
             id={tableNameSpace}
             data-filter-id={filterId}>
             <Slot name={beforeSlotId} fillProps={{ ...filteredProps }} />
@@ -647,6 +716,37 @@ export function DataViews<Item>(props: DataViewsProps<Item>) {
                 )}
             </DataViewsTable>
             <Slot name={afterSlotId} fillProps={{ ...filteredProps }} />
+
+            {/* Destructive action confirmation AlertDialog */}
+            {pendingDestructiveAction && (
+                <AlertDialog open onOpenChange={(open) => !open && handleDestructiveCancel()}>
+                    <AlertDialogContent size="default">
+                        <AlertDialogHeader>
+                            <AlertDialogTitle>
+                                {pendingDestructiveAction.action.confirmTitle ||
+                                    (typeof pendingDestructiveAction.action.label === 'function'
+                                        ? pendingDestructiveAction.action.label(pendingDestructiveAction.items)
+                                        : pendingDestructiveAction.action.label)}
+                            </AlertDialogTitle>
+                            <AlertDialogDescription>
+                                {pendingDestructiveAction.action.confirmMessage ||
+                                    __('Are you sure? This action cannot be undone.', 'default')}
+                            </AlertDialogDescription>
+                        </AlertDialogHeader>
+                        <AlertDialogFooter>
+                            <AlertDialogCancel onClick={handleDestructiveCancel}>
+                                {pendingDestructiveAction.action.cancelButtonLabel || __('Cancel', 'default')}
+                            </AlertDialogCancel>
+                            <AlertDialogAction variant="destructive" onClick={handleDestructiveConfirm}>
+                                {pendingDestructiveAction.action.confirmButtonLabel ||
+                                    (typeof pendingDestructiveAction.action.label === 'function'
+                                        ? pendingDestructiveAction.action.label(pendingDestructiveAction.items)
+                                        : pendingDestructiveAction.action.label)}
+                            </AlertDialogAction>
+                        </AlertDialogFooter>
+                    </AlertDialogContent>
+                </AlertDialog>
+            )}
         </div>
     );
 }

@@ -263,6 +263,93 @@ export const WithBulkSelection: StoryFn = () => {
 };
 WithBulkSelection.storyName = "With Bulk Selection";
 
+/** Destructive actions automatically show an AlertDialog confirmation before executing. Supports both single-row and bulk actions. */
+export const DestructiveActions: StoryFn = () => {
+  const [view, setView] = useState<DataViewState>(createDefaultView());
+  const [selection, setSelection] = useState<string[]>([]);
+  const [users, setUsers] = useState(allUsers);
+
+  const paginatedData = paginateData(users, view);
+
+  const destructiveActions: DataViewAction<User>[] = [
+    {
+      id: "view",
+      label: "View",
+      icon: <Eye size={16} />,
+      callback: (items) => {
+        alert(`Viewing: ${items.map(i => i.name).join(", ")}`);
+      },
+    },
+    {
+      id: "edit",
+      label: "Edit",
+      icon: <Pencil size={16} />,
+      callback: (items) => {
+        alert(`Editing: ${items.map(i => i.name).join(", ")}`);
+      },
+    },
+    {
+      id: "delete",
+      label: "Delete",
+      icon: <Trash2 size={16} />,
+      isDestructive: true,
+      supportsBulk: true,
+      callback: (items) => {
+        const ids = new Set(items.map(i => i.id));
+        setUsers(prev => prev.filter(u => !ids.has(u.id)));
+        setSelection([]);
+      },
+    },
+    {
+      id: "archive",
+      label: "Archive",
+      icon: <Archive size={16} />,
+      isDestructive: true,
+      confirmTitle: "Archive Users",
+      confirmMessage: "Archived users will be moved to the archive and can be restored later.",
+      confirmButtonLabel: "Yes, Archive",
+      cancelButtonLabel: "No, Keep",
+      supportsBulk: true,
+      callback: (items) => {
+        alert(`Archived: ${items.map(i => i.name).join(", ")}`);
+      },
+    },
+  ];
+
+  return (
+    <div className="p-4">
+      <DataViews<User>
+        namespace="dataviews-demo"
+        data={paginatedData}
+        fields={fields}
+        view={view}
+        onChangeView={setView}
+        actions={destructiveActions}
+        selection={selection}
+        onChangeSelection={setSelection}
+        paginationInfo={{
+          totalItems: users.length,
+          totalPages: getTotalPages(users.length, view.perPage),
+        }}
+        getItemId={(item) => item.id}
+      />
+    </div>
+  );
+};
+DestructiveActions.storyName = "Destructive Actions";
+DestructiveActions.parameters = {
+  docs: {
+    description: {
+      story: `Actions with \`isDestructive: true\` automatically show an AlertDialog confirmation before executing.
+
+- **Delete** uses default confirmation (title = action label, message = generic warning)
+- **Archive** uses custom \`confirmTitle\`, \`confirmMessage\`, \`confirmButtonLabel\`, and \`cancelButtonLabel\`
+
+Both support bulk selection. Try selecting multiple rows and using the bulk toolbar.`,
+    },
+  },
+};
+
 /** DataViews with tabs for filtering by status. */
 export const WithTabs: StoryFn = () => {
   const [view, setView] = useState<DataViewState>(createDefaultView());
