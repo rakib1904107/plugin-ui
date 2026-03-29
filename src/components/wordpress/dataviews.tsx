@@ -388,7 +388,7 @@ function SkeletonTable({
             <thead>
                 <tr className="border-b border-border">
                     {hasBulkActions && (
-                        <th className="h-12 bg-white w-12 px-4 align-middle">
+                        <th className="h-12 bg-white w-12 px-5 align-middle">
                             <Skeleton className="h-4 w-4 rounded-sm" />
                         </th>
                     )}
@@ -398,7 +398,7 @@ function SkeletonTable({
                             <th
                                 key={colIdx}
                                 className={cn(
-                                    'h-12 bg-white px-4 align-middle text-[11px] font-medium text-foreground uppercase tracking-normal',
+                                    'h-12 bg-white px-5 align-middle text-[11px] font-medium text-foreground uppercase tracking-normal',
                                     isActions ? 'text-right' : 'text-left'
                                 )}>
                                 {label}
@@ -411,14 +411,14 @@ function SkeletonTable({
                 {Array.from({ length: rows }, (_, rowIdx) => (
                     <tr key={rowIdx} className="border-b border-border last:border-b-0">
                         {hasBulkActions && (
-                            <td className="h-12 w-12 px-4 align-middle">
+                            <td className="h-12 w-12 px-5 align-middle">
                                 <Skeleton className="h-4 w-4 rounded-sm" />
                             </td>
                         )}
                         {headers.map((_, colIdx) => {
                             const isActions = hasActions && colIdx === headers.length - 1;
                             return (
-                                <td key={colIdx} className="h-12 px-4 align-middle">
+                                <td key={colIdx} className="h-12 px-5 align-middle">
                                     <div className={cn(isActions && 'flex justify-end')}>
                                         <Skeleton className={cn('h-4', widths[colIdx % widths.length])} />
                                     </div>
