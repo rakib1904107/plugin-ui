@@ -17,18 +17,35 @@ interface User {
 }
 
 // Generate sample data
+const firstNames = [
+  "James", "Emma", "Liam", "Olivia", "Noah", "Ava", "William", "Sophia",
+  "Benjamin", "Isabella", "Lucas", "Mia", "Henry", "Charlotte", "Alexander",
+  "Amelia", "Daniel", "Harper", "Matthew", "Evelyn", "Sebastian", "Aria",
+  "Jack", "Chloe", "Owen",
+];
+const lastNames = [
+  "Anderson", "Martinez", "Thompson", "Garcia", "Robinson", "Clark", "Lewis",
+  "Walker", "Hall", "Young", "King", "Wright", "Lopez", "Hill", "Scott",
+  "Green", "Adams", "Baker", "Nelson", "Carter", "Mitchell", "Perez",
+  "Roberts", "Turner", "Phillips",
+];
+
 const generateUsers = (count: number): User[] => {
   const statuses: User["status"][] = ["active", "inactive", "pending"];
   const roles = ["Admin", "Editor", "Viewer", "Manager"];
-  
-  return Array.from({ length: count }, (_, i) => ({
-    id: `user-${i + 1}`,
-    name: `User ${i + 1}`,
-    email: `user${i + 1}@example.com`,
-    status: statuses[i % 3],
-    role: roles[i % 4],
-    joinedAt: new Date(2024, i % 12, (i % 28) + 1).toLocaleDateString(),
-  }));
+
+  return Array.from({ length: count }, (_, i) => {
+    const first = firstNames[i % firstNames.length];
+    const last = lastNames[i % lastNames.length];
+    return {
+      id: `user-${i + 1}`,
+      name: `${first} ${last}`,
+      email: `${first.toLowerCase()}.${last.toLowerCase()}@example.com`,
+      status: statuses[i % 3],
+      role: roles[i % 4],
+      joinedAt: new Date(2024, i % 12, (i % 28) + 1).toLocaleDateString(),
+    };
+  });
 };
 
 const allUsers = generateUsers(100);
@@ -959,80 +976,24 @@ FullFeatured.storyName = "Full Featured";
  */
 function PosterGrid({ items }: { items: User[] }) {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))",
-        gap: "16px",
-        padding: "16px 0",
-      }}
-    >
+    <div className="grid grid-cols-[repeat(auto-fill,minmax(280px,1fr))] gap-4 py-4">
       {items.map((item) => (
         <div
           key={item.id}
-          style={{
-            position: "relative",
-            aspectRatio: "4 / 3",
-            borderRadius: "8px",
-            overflow: "hidden",
-            backgroundColor: "#cbd5e1", // Placeholder background
-          }}
+          className="relative aspect-4/3 rounded-lg overflow-hidden bg-slate-300"
         >
-          <div
-            style={{
-              position: "absolute",
-              bottom: 0,
-              left: 0,
-              right: 0,
-              padding: "48px 16px 16px",
-              background:
-                "linear-gradient(to top, rgba(0,0,0,0.8) 0%, rgba(0,0,0,0.4) 60%, transparent 100%)",
-              color: "white",
-            }}
-          >
-            <h3
-              style={{
-                margin: "0 0 4px",
-                fontSize: "18px",
-                fontWeight: 600,
-                textShadow: "0 1px 2px rgba(0,0,0,0.5)",
-              }}
-            >
+          <div className="absolute bottom-0 left-0 right-0 pt-12 px-4 pb-4 bg-linear-to-t from-black/80 via-black/40 to-transparent text-white">
+            <h3 className="mb-1 text-lg font-semibold drop-shadow-[0_1px_2px_rgba(0,0,0,0.5)]">
               {item.name}
             </h3>
-            <p
-              style={{
-                margin: "0 0 8px",
-                fontSize: "13px",
-                opacity: 0.9,
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
-              }}
-            >
+            <p className="mb-2 text-[13px] opacity-90 overflow-hidden text-ellipsis whitespace-nowrap">
               {item.email}
             </p>
-            <div style={{ display: "flex", gap: "6px" }}>
-              <span
-                style={{
-                  fontSize: "11px",
-                  padding: "2px 8px",
-                  borderRadius: "4px",
-                  backgroundColor: "rgba(255,255,255,0.2)",
-                  textTransform: "capitalize",
-                }}
-              >
+            <div className="flex gap-1.5">
+              <span className="text-[11px] px-2 py-0.5 rounded bg-white/20 capitalize">
                 {item.role}
               </span>
-              <span
-                style={{
-                  fontSize: "11px",
-                  padding: "2px 8px",
-                  borderRadius: "4px",
-                  backgroundColor: "rgba(255,255,255,0.2)",
-                  textTransform: "capitalize",
-                }}
-              >
+              <span className="text-[11px] px-2 py-0.5 rounded bg-white/20 capitalize">
                 {item.status}
               </span>
             </div>
@@ -1083,9 +1044,8 @@ export const LayoutCustomComponent: StoryFn = () => {
         view={view}
         fields={fields}
         onChangeView={setView}
-        defaultLayouts={{ table: {} }}
       >
-        <div style={{ padding: "2px" }}>
+        <div className="p-0.5">
           {DataViews.Search && <DataViews.Search />}
           <PosterGrid items={paginatedData} />
         </div>
