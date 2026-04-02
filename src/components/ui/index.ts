@@ -109,6 +109,7 @@ export {
   SmartSelect,
   type SmartSelectOption,
   type SmartSelectProps,
+  type SmartSelectCreateContext,
 } from "./smart-select";
 
 // Command component (cmdk)

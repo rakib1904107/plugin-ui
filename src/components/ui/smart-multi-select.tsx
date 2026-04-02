@@ -325,7 +325,7 @@ const SmartMultiSelect = React.forwardRef<
         </PopoverTrigger>
         <PopoverContent
           data-slot="smart-multi-select-content"
-          className={cn("w-[250px] gap-0 p-0", contentClassName)}
+          className={cn("!w-(--anchor-width) gap-0 p-0", contentClassName)}
           align="start"
         >
           <Command shouldFilter={!async}>

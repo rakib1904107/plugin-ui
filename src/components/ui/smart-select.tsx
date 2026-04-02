@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, XIcon } from "lucide-react"
+import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, PlusIcon, XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -32,6 +32,15 @@ export interface SmartSelectOption {
   group?: string
 }
 
+export interface SmartSelectCreateContext {
+  /** Current search/input value */
+  searchValue: string
+  /** Clear the search input and close the create form */
+  clearSearch: () => void
+  /** Close the popover */
+  close: () => void
+}
+
 export interface SmartSelectProps {
   /** Async callback triggered on search input change (after debounce) */
   onSearch: (query: string) => void | Promise<void>
@@ -57,6 +66,8 @@ export interface SmartSelectProps {
   disabled?: boolean
   /** Mark combobox as invalid */
   invalid?: boolean
+  /** Whether to disable the search input */
+  disableSearch?: boolean
   /** Debounce delay in milliseconds @default 300 */
   debounceMs?: number
   /** Additional class for the trigger button */
@@ -65,6 +76,23 @@ export interface SmartSelectProps {
   contentClassName?: string
   /** Custom render function for each option */
   renderOption?: (option: SmartSelectOption, isSelected: boolean) => React.ReactNode
+  /**
+   * Render function for the create form. Receives a context with searchValue,
+   * clearSearch, and close helpers. Return any React node — a simple input or
+   * a complex form. The form is shown when no results match or when the user
+   * clicks the create button.
+   */
+  renderCreateForm?: (ctx: SmartSelectCreateContext) => React.ReactNode
+  /** Whether to auto-select the newly created item @default false */
+  selectOnCreate?: boolean
+  /**
+   * Callback fired after a new item is created via the default create form.
+   * If you use `renderCreateForm`, you handle creation yourself.
+   * Receives the name and a done callback to call when finished.
+   */
+  onCreate?: (name: string, done: (createdValue?: string) => void) => void
+  /** Text for the default create button @default "Create" */
+  createButtonText?: string
 }
 
 function SmartSelect({
@@ -80,13 +108,19 @@ function SmartSelect({
   showClear = false,
   disabled = false,
   invalid = false,
+  disableSearch = false,
   debounceMs = 300,
   className,
   contentClassName,
   renderOption,
+  renderCreateForm,
+  selectOnCreate = false,
+  onCreate,
+  createButtonText = "Create",
 }: SmartSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
+  const [showCreate, setShowCreate] = React.useState(false)
   const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
 
   const selectedOption = React.useMemo(
@@ -97,6 +131,7 @@ function SmartSelect({
   const handleSearchChange = React.useCallback(
     (query: string) => {
       setSearch(query)
+      setShowCreate(false)
 
       if (timerRef.current) {
         clearTimeout(timerRef.current)
@@ -120,10 +155,10 @@ function SmartSelect({
   React.useEffect(() => {
     if (!open) {
       setSearch("")
+      setShowCreate(false)
     }
   }, [open])
 
-  // Group options by group name
   const groupedOptions = React.useMemo(() => {
     const groups = new Map<string, SmartSelectOption[]>()
     const ungrouped: SmartSelectOption[] = []
@@ -148,6 +183,37 @@ function SmartSelect({
     },
     [onValueChange]
   )
+
+  const clearSearch = React.useCallback(() => {
+    setSearch("")
+    setShowCreate(false)
+    onSearch("")
+  }, [onSearch])
+
+  const createCtx: SmartSelectCreateContext = React.useMemo(
+    () => ({
+      searchValue: search,
+      clearSearch,
+      close: () => setOpen(false),
+    }),
+    [search, clearSearch]
+  )
+
+  const handleDefaultCreate = React.useCallback(() => {
+    if (!onCreate || !search.trim()) return
+    onCreate(search.trim(), (createdValue?: string) => {
+      if (selectOnCreate && createdValue) {
+        onValueChange?.(createdValue)
+      }
+      clearSearch()
+      setShowCreate(false)
+    })
+  }, [onCreate, search, selectOnCreate, onValueChange, clearSearch])
+
+  const hasCreateCapability = !!(renderCreateForm || onCreate)
+  const showCreateForm =
+    hasCreateCapability &&
+    (showCreate || (search && !loading && options.length === 0))
 
   const renderItems = (items: SmartSelectOption[]) =>
     items.map((option) => {
@@ -209,6 +275,34 @@ function SmartSelect({
     )
   }
 
+  const renderDefaultCreateForm = () => (
+    <div className="flex flex-col gap-2 p-3 border-t border-border">
+      <div className="flex items-center gap-2">
+        <input
+          className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+          placeholder="Enter name..."
+          autoFocus
+          onKeyDown={(e) => {
+            if (e.key === "Enter") {
+              e.preventDefault()
+              handleDefaultCreate()
+            }
+            e.stopPropagation()
+          }}
+        />
+        <Button
+          size="sm"
+          onClick={handleDefaultCreate}
+          disabled={!search.trim()}
+        >
+          {createButtonText}
+        </Button>
+      </div>
+    </div>
+  )
+
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
@@ -257,35 +351,62 @@ function SmartSelect({
       </PopoverTrigger>
       <PopoverContent
         data-slot="smart-select-content"
-        className={cn("w-[250px] gap-0 p-0", contentClassName)}
+        className={cn("!w-(--anchor-width) gap-0 p-0", contentClassName)}
         align="start"
       >
         <Command shouldFilter={false}>
-          <CommandInput
-            placeholder={searchPlaceholder}
-            value={search}
-            onValueChange={handleSearchChange}
-          />
+          {!disableSearch && (
+            <div className="flex w-full items-center [&>[data-slot=command-input-wrapper]]:flex-1 [&>[data-slot=command-input-wrapper]]:border-b-0 border-b border-border">
+              <CommandInput
+                placeholder={searchPlaceholder}
+                value={search}
+                onValueChange={handleSearchChange}
+              />
+              {hasCreateCapability && (
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="me-2 shrink-0"
+                  onClick={() => setShowCreate((prev) => !prev)}
+                >
+                  {showCreate ? (
+                    <XIcon className="size-4" />
+                  ) : (
+                    <PlusIcon className="size-4" />
+                  )}
+                </Button>
+              )}
+            </div>
+          )}
           <CommandList>
-            {loading ? (
-              <div className="flex items-center justify-center gap-2 p-4">
-                <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
-                <span className="text-muted-foreground text-sm">
-                  Searching...
-                </span>
-              </div>
-            ) : !search ? (
-              <div className="p-4 text-center text-muted-foreground text-sm">
-                {idleMessage}
-              </div>
-            ) : options.length === 0 ? (
-              <CommandEmpty>{emptyMessage}</CommandEmpty>
-            ) : groupedOptions.groups.size > 0 ? (
-              renderGroupedContent()
-            ) : (
-              <CommandGroup>{renderItems(options)}</CommandGroup>
+            {!showCreateForm && (
+              <>
+                {loading ? (
+                  <div className="flex items-center justify-center gap-2 p-4">
+                    <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
+                    <span className="text-muted-foreground text-sm">
+                      Searching...
+                    </span>
+                  </div>
+                ) : options.length > 0 ? (
+                  groupedOptions.groups.size > 0
+                    ? renderGroupedContent()
+                    : <CommandGroup>{renderItems(options)}</CommandGroup>
+                ) : !search ? (
+                  <div className="p-4 text-center text-muted-foreground text-sm">
+                    {idleMessage}
+                  </div>
+                ) : !hasCreateCapability ? (
+                  <CommandEmpty>{emptyMessage}</CommandEmpty>
+                ) : null}
+              </>
             )}
           </CommandList>
+          {showCreateForm && (
+            renderCreateForm
+              ? renderCreateForm(createCtx)
+              : renderDefaultCreateForm()
+          )}
         </Command>
       </PopoverContent>
     </Popover>

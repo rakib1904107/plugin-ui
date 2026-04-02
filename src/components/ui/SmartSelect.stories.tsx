@@ -3,7 +3,9 @@ import type { Meta, StoryObj } from "@storybook/react";
 import {
   SmartSelect,
   type SmartSelectOption,
+  type SmartSelectCreateContext,
 } from "./smart-select";
+import { Input, Label, Button } from "./index";
 
 const allFrameworks: SmartSelectOption[] = [
   { value: "next.js", label: "Next.js" },
@@ -127,7 +129,7 @@ function SmartSelectCustomItemsDemo() {
       loading={loading}
       placeholder="Search frameworks..."
       className="w-[300px]"
-      contentClassName="w-[300px]"
+
     />
   );
 }
@@ -151,7 +153,7 @@ function SmartSelectCustomRenderDemo() {
       loading={loading}
       placeholder="Search frameworks..."
       className="w-[300px]"
-      contentClassName="w-[300px]"
+
       renderOption={(option, isSelected) => (
         <div className="flex items-center justify-between w-full">
           <div className="flex items-center gap-2">
@@ -278,7 +280,7 @@ function SmartSelectUsersDemo() {
       idleMessage="Search by name or email"
       showClear
       className="w-[300px]"
-      contentClassName="w-[300px]"
+
     />
   );
 }
@@ -417,11 +419,276 @@ function SmartSelectFewOptionsDemo() {
       idleMessage="Choose a status"
       showClear
       className="w-[180px]"
-      contentClassName="w-[180px]"
+
     />
   );
 }
 
 export const FewStaticOptions: Story = {
   render: () => <SmartSelectFewOptionsDemo />,
+};
+
+// ─── Disabled Search ────────────────────────
+
+function SmartSelectNoSearchDemo() {
+  const [value, setValue] = useState("");
+
+  return (
+    <SmartSelect
+      onSearch={() => {}}
+      options={[...staticOptions]}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select status..."
+      idleMessage="Choose a status"
+      disableSearch
+      className="w-[180px]"
+
+    />
+  );
+}
+
+export const DisabledSearch: Story = {
+  render: () => <SmartSelectNoSearchDemo />,
+};
+
+// ─── Create with Default Form ────────────────────────
+
+function SmartSelectCreateDefaultDemo() {
+  const [value, setValue] = useState("");
+  const [options, setOptions] = useState<SmartSelectOption[]>([...allFrameworks]);
+  const [filteredOptions, setFilteredOptions] = useState<SmartSelectOption[]>([
+    ...allFrameworks,
+  ]);
+
+  return (
+    <SmartSelect
+      onSearch={(query) => {
+        if (!query) {
+          setFilteredOptions(options);
+          return;
+        }
+        setFilteredOptions(
+          options.filter((f) =>
+            f.label.toLowerCase().includes(query.toLowerCase())
+          )
+        );
+      }}
+      options={filteredOptions}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select or create..."
+      idleMessage="All frameworks"
+      showClear
+      className="w-[280px]"
+
+      onCreate={(name, done) => {
+        const newOption = { value: name.toLowerCase(), label: name };
+        setOptions((prev) => [...prev, newOption]);
+        setFilteredOptions((prev) => [...prev, newOption]);
+        done(newOption.value);
+      }}
+      selectOnCreate
+    />
+  );
+}
+
+export const CreateDefault: Story = {
+  render: () => <SmartSelectCreateDefaultDemo />,
+};
+
+// ─── Create with Custom Form (simple) ────────────────────────
+
+function SimpleCreateForm({
+  ctx,
+  onCreated,
+}: {
+  ctx: SmartSelectCreateContext;
+  onCreated: (option: SmartSelectOption) => void;
+}) {
+  const [name, setName] = useState(ctx.searchValue);
+  return (
+    <div className="p-3 border-t border-border space-y-2">
+      <p className="text-sm font-medium">Create new framework</p>
+      <Input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Framework name..."
+        autoFocus
+        onKeyDown={(e) => e.stopPropagation()}
+      />
+      <div className="flex gap-2 justify-end">
+        <Button variant="outline" size="sm" onClick={() => ctx.clearSearch()}>
+          Cancel
+        </Button>
+        <Button
+          size="sm"
+          disabled={!name.trim()}
+          onClick={() => {
+            onCreated({ value: name.toLowerCase(), label: name });
+            ctx.clearSearch();
+          }}
+        >
+          Create
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function SmartSelectCreateCustomSimpleDemo() {
+  const [value, setValue] = useState("");
+  const [options, setOptions] = useState<SmartSelectOption[]>([...allFrameworks]);
+  const [filteredOptions, setFilteredOptions] = useState<SmartSelectOption[]>([
+    ...allFrameworks,
+  ]);
+
+  const addOption = (opt: SmartSelectOption) => {
+    setOptions((prev) => [...prev, opt]);
+    setFilteredOptions((prev) => [...prev, opt]);
+    setValue(opt.value);
+  };
+
+  return (
+    <SmartSelect
+      onSearch={(query) => {
+        if (!query) {
+          setFilteredOptions(options);
+          return;
+        }
+        setFilteredOptions(
+          options.filter((f) =>
+            f.label.toLowerCase().includes(query.toLowerCase())
+          )
+        );
+      }}
+      options={filteredOptions}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select or create..."
+      idleMessage="All frameworks"
+      showClear
+      className="w-[300px]"
+
+      renderCreateForm={(ctx) => (
+        <SimpleCreateForm ctx={ctx} onCreated={addOption} />
+      )}
+    />
+  );
+}
+
+export const CreateCustomSimple: Story = {
+  render: () => <SmartSelectCreateCustomSimpleDemo />,
+};
+
+// ─── Create with Custom Form (complex) ────────────────────────
+
+function ComplexCreateForm({
+  ctx,
+  onCreated,
+}: {
+  ctx: SmartSelectCreateContext;
+  onCreated: (option: SmartSelectOption) => void;
+}) {
+  const [name, setName] = useState(ctx.searchValue);
+  const [description, setDescription] = useState("");
+  const [group, setGroup] = useState("");
+  return (
+    <div className="p-3 border-t border-border space-y-3">
+      <p className="text-sm font-medium">Create new framework</p>
+      <div className="space-y-1.5">
+        <Label className="text-xs">Name</Label>
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Framework name..."
+          autoFocus
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs">Description</Label>
+        <Input
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Short description..."
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs">Category</Label>
+        <Input
+          value={group}
+          onChange={(e) => setGroup(e.target.value)}
+          placeholder="e.g. React, Vue..."
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      </div>
+      <div className="flex gap-2 justify-end pt-1">
+        <Button variant="outline" size="sm" onClick={() => ctx.clearSearch()}>
+          Cancel
+        </Button>
+        <Button
+          size="sm"
+          disabled={!name.trim()}
+          onClick={() => {
+            onCreated({
+              value: name.toLowerCase(),
+              label: name,
+              description: description || undefined,
+              group: group || undefined,
+            });
+            ctx.clearSearch();
+          }}
+        >
+          Create
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function SmartSelectCreateCustomComplexDemo() {
+  const [value, setValue] = useState("");
+  const [options, setOptions] = useState<SmartSelectOption[]>([...allFrameworks]);
+  const [filteredOptions, setFilteredOptions] = useState<SmartSelectOption[]>([
+    ...allFrameworks,
+  ]);
+
+  const addOption = (opt: SmartSelectOption) => {
+    setOptions((prev) => [...prev, opt]);
+    setFilteredOptions((prev) => [...prev, opt]);
+    setValue(opt.value);
+  };
+
+  return (
+    <SmartSelect
+      onSearch={(query) => {
+        if (!query) {
+          setFilteredOptions(options);
+          return;
+        }
+        setFilteredOptions(
+          options.filter((f) =>
+            f.label.toLowerCase().includes(query.toLowerCase())
+          )
+        );
+      }}
+      options={filteredOptions}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select or create..."
+      idleMessage="All frameworks"
+      showClear
+      className="w-[350px]"
+
+      renderCreateForm={(ctx) => (
+        <ComplexCreateForm ctx={ctx} onCreated={addOption} />
+      )}
+    />
+  );
+}
+
+export const CreateCustomComplex: Story = {
+  render: () => <SmartSelectCreateCustomComplexDemo />,
 };

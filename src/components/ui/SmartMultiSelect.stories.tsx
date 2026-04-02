@@ -86,7 +86,7 @@ function MaxCountDemo() {
       placeholder="Select frameworks..."
       maxCount={2}
       className="w-[300px]"
-      contentClassName="w-[300px]"
+
     />
   );
 }
@@ -127,7 +127,7 @@ function CustomLabelDemo() {
       onValueChange={setValue}
       placeholder="Select frameworks..."
       className="w-[300px]"
-      contentClassName="w-[300px]"
+
       labelFunc={(option, isSelected) => (
         <div className="flex items-center gap-2">
           <span className="inline-flex size-5 items-center justify-center rounded bg-primary/10 text-xs font-bold text-primary">
@@ -350,7 +350,7 @@ function FewStaticOptionsDemo() {
       placeholder="Select status..."
       hideSelectAll
       className="w-[200px]"
-      contentClassName="w-[200px]"
+
     />
   );
 }
