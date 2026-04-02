@@ -79,7 +79,7 @@ const ComboboxInput = React.forwardRef<
       <div
         ref={ref}
         className={cn(
-          "border-input dark:bg-input/30 focus-within:border-ring focus-within:ring-ring/50 flex h-9 w-full items-center gap-1 rounded-md border bg-transparent px-2 shadow-xs transition-[color,box-shadow] focus-within:ring-[3px]",
+          "border-input dark:bg-input/30 focus-within:border-ring focus-within:ring-ring/50 has-aria-invalid:border-destructive has-aria-invalid:ring-destructive/20 dark:has-aria-invalid:ring-destructive/40 has-aria-invalid:ring-[3px] flex h-9 w-full items-center gap-1 rounded-md border bg-transparent px-2 shadow-xs transition-[color,box-shadow] focus-within:ring-[3px]",
           className
         )}
         data-slot="combobox-input-wrapper"
@@ -88,13 +88,13 @@ const ComboboxInput = React.forwardRef<
           render={
             <Input
               data-in-group={true}
-              className="h-auto min-w-0 flex-1 border-0 bg-transparent p-0 shadow-none ring-0 focus-visible:ring-0"
+              className="h-auto min-w-0 flex-1 border-0 bg-transparent p-0 shadow-none ring-0 focus-visible:ring-0 aria-invalid:ring-0 aria-invalid:border-0"
               disabled={disabled}
             />
           }
           {...props}
         />
-        {showTrigger && <ComboboxTrigger />}
+        {showTrigger && <ComboboxTrigger disabled={disabled} />}
         {showClear && <ComboboxClear disabled={disabled} />}
         {children}
       </div>

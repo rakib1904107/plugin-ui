@@ -13,8 +13,11 @@ import {
   ComboboxChips,
   ComboboxChip,
   ComboboxChipsInput,
+  ComboboxTrigger,
+  ComboboxValue,
   useComboboxAnchor,
   Button,
+  InputGroupAddon,
   Command,
   CommandEmpty,
   CommandGroup,
@@ -36,6 +39,7 @@ import {
 import {
   CheckIcon,
   ChevronsUpDownIcon,
+  GlobeIcon,
   MoreHorizontalIcon,
   TagIcon,
 } from "lucide-react";
@@ -436,6 +440,87 @@ export const DropdownMenuWithCommand: Story = {
   render: () => <ComboboxDropdownMenuDemo />,
 };
 
+// ─── Custom Items ────────────────────────
+
+type Framework = {
+  value: string;
+  label: string;
+  description: string;
+};
+
+const customFrameworks: Framework[] = [
+  { value: "next.js", label: "Next.js", description: "The React Framework" },
+  { value: "sveltekit", label: "SvelteKit", description: "Web development, streamlined" },
+  { value: "nuxt.js", label: "Nuxt.js", description: "The Intuitive Vue Framework" },
+  { value: "remix", label: "Remix", description: "Build better websites" },
+  { value: "astro", label: "Astro", description: "The web framework for content" },
+];
+
+function ComboboxCustomItemsDemo() {
+  const [value, setValue] = useState<Framework | null>(null);
+
+  return (
+    <Combobox
+      items={customFrameworks}
+      value={value}
+      onValueChange={setValue}
+      itemToStringLabel={(item) => item.label}
+      itemToStringValue={(item) => item.value}
+    >
+      <ComboboxInput placeholder="Select framework..." className="w-72" />
+      <ComboboxContent>
+        <ComboboxList>
+          {customFrameworks.map((item) => (
+            <ComboboxItem key={item.value} value={item}>
+              <div className="flex flex-col">
+                <span className="font-medium">{item.label}</span>
+                <span className="text-xs text-muted-foreground">
+                  {item.description}
+                </span>
+              </div>
+            </ComboboxItem>
+          ))}
+        </ComboboxList>
+        <ComboboxEmpty>No frameworks found.</ComboboxEmpty>
+      </ComboboxContent>
+    </Combobox>
+  );
+}
+
+export const CustomItems: Story = {
+  render: () => <ComboboxCustomItemsDemo />,
+};
+
+// ─── Invalid ────────────────────────
+
+function ComboboxInvalidDemo() {
+  const [value, setValue] = useState<string | null>(null);
+
+  return (
+    <Combobox items={frameworks} value={value} onValueChange={setValue}>
+      <ComboboxInput
+        placeholder="Select framework..."
+        className="w-64"
+        aria-invalid="true"
+      />
+      <ComboboxContent>
+        <ComboboxList>
+          {frameworks.map((item) => (
+            <ComboboxItem key={item} value={item}>
+              {item}
+            </ComboboxItem>
+          ))}
+        </ComboboxList>
+        <ComboboxEmpty>No results found.</ComboboxEmpty>
+      </ComboboxContent>
+    </Combobox>
+  );
+}
+
+export const Invalid: Story = {
+  render: () => <ComboboxInvalidDemo />,
+};
+
 // ─── Disabled ────────────────────────
 
 export const Disabled: Story = {
@@ -453,4 +538,142 @@ export const Disabled: Story = {
       </ComboboxContent>
     </Combobox>
   ),
+};
+
+// ─── Auto Highlight ────────────────────────
+
+function ComboboxAutoHighlightDemo() {
+  const [value, setValue] = useState<string | null>(null);
+
+  return (
+    <Combobox
+      items={frameworks}
+      value={value}
+      onValueChange={setValue}
+      autoHighlight
+    >
+      <ComboboxInput placeholder="Type to search..." className="w-64" />
+      <ComboboxContent>
+        <ComboboxList>
+          {frameworks.map((item) => (
+            <ComboboxItem key={item} value={item}>
+              {item}
+            </ComboboxItem>
+          ))}
+        </ComboboxList>
+        <ComboboxEmpty>No results found.</ComboboxEmpty>
+      </ComboboxContent>
+    </Combobox>
+  );
+}
+
+export const AutoHighlight: Story = {
+  render: () => <ComboboxAutoHighlightDemo />,
+};
+
+// ─── Popup (Trigger Button) ────────────────────────
+
+function ComboboxPopupDemo() {
+  const [value, setValue] = useState<string | null>(null);
+
+  return (
+    <Combobox items={frameworks} value={value} onValueChange={setValue}>
+      <ComboboxTrigger
+        render={
+          <Button
+            variant="outline"
+            className="w-[200px] justify-between border-input text-foreground font-normal"
+          />
+        }
+      >
+        <ComboboxValue placeholder="Select framework..." />
+        <ChevronsUpDownIcon className="size-4 opacity-50" />
+      </ComboboxTrigger>
+      <ComboboxContent>
+        <ComboboxInput
+          placeholder="Search..."
+          className="m-1 mb-0"
+          showTrigger={false}
+        />
+        <ComboboxList>
+          {frameworks.map((item) => (
+            <ComboboxItem key={item} value={item}>
+              {item}
+            </ComboboxItem>
+          ))}
+        </ComboboxList>
+        <ComboboxEmpty>No results found.</ComboboxEmpty>
+      </ComboboxContent>
+    </Combobox>
+  );
+}
+
+export const Popup: Story = {
+  render: () => <ComboboxPopupDemo />,
+};
+
+// ─── Input Group (with addon) ────────────────────────
+
+function ComboboxInputGroupDemo() {
+  const [value, setValue] = useState<string | null>(null);
+
+  return (
+    <Combobox items={frameworks} value={value} onValueChange={setValue}>
+      <ComboboxInput placeholder="Search frameworks..." className="w-72">
+        <InputGroupAddon align="inline-start">
+          <GlobeIcon className="size-4 text-muted-foreground" />
+        </InputGroupAddon>
+      </ComboboxInput>
+      <ComboboxContent>
+        <ComboboxList>
+          {frameworks.map((item) => (
+            <ComboboxItem key={item} value={item}>
+              {item}
+            </ComboboxItem>
+          ))}
+        </ComboboxList>
+        <ComboboxEmpty>No results found.</ComboboxEmpty>
+      </ComboboxContent>
+    </Combobox>
+  );
+}
+
+export const InputGroup: Story = {
+  render: () => <ComboboxInputGroupDemo />,
+};
+
+// ─── RTL ────────────────────────
+
+const arabicItems = [
+  "Next.js - إطار عمل ريأكت",
+  "SvelteKit - إطار عمل سفيلت",
+  "Nuxt.js - إطار عمل فيو",
+  "Remix - إطار عمل ريأكت",
+  "Astro - إطار عمل المحتوى",
+];
+
+function ComboboxRtlDemo() {
+  const [value, setValue] = useState<string | null>(null);
+
+  return (
+    <div dir="rtl">
+      <Combobox items={arabicItems} value={value} onValueChange={setValue}>
+        <ComboboxInput placeholder="ابحث عن إطار عمل..." className="w-72" />
+        <ComboboxContent>
+          <ComboboxList>
+            {arabicItems.map((item) => (
+              <ComboboxItem key={item} value={item}>
+                {item}
+              </ComboboxItem>
+            ))}
+          </ComboboxList>
+          <ComboboxEmpty>لا توجد نتائج.</ComboboxEmpty>
+        </ComboboxContent>
+      </Combobox>
+    </div>
+  );
+}
+
+export const RTL: Story = {
+  render: () => <ComboboxRtlDemo />,
 };
