@@ -385,14 +385,17 @@ function ComboboxDropdownMenuDemo() {
           <MoreHorizontalIcon />
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end" className="w-[200px]">
-          <DropdownMenuLabel>Actions</DropdownMenuLabel>
           <DropdownMenuGroup>
+            <DropdownMenuLabel>Actions</DropdownMenuLabel>
             <DropdownMenuItem>Assign to...</DropdownMenuItem>
             <DropdownMenuItem>Set due date...</DropdownMenuItem>
-            <DropdownMenuSeparator />
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Apply label</DropdownMenuSubTrigger>
-              <DropdownMenuSubContent className="p-0">
+          </DropdownMenuGroup>
+          <DropdownMenuSeparator />
+          <DropdownMenuSub>
+            <DropdownMenuSubTrigger>Apply label</DropdownMenuSubTrigger>
+            <DropdownMenuSubContent className="p-0">
+              {/* Stop keyboard event propagation to prevent base-ui Menu from intercepting input */}
+              <div onKeyDown={(e) => e.stopPropagation()}>
                 <Command>
                   <CommandInput
                     placeholder="Filter label..."
@@ -417,13 +420,13 @@ function ComboboxDropdownMenuDemo() {
                     </CommandGroup>
                   </CommandList>
                 </Command>
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-            <DropdownMenuSeparator />
-            <DropdownMenuItem className="text-destructive">
-              Delete
-            </DropdownMenuItem>
-          </DropdownMenuGroup>
+              </div>
+            </DropdownMenuSubContent>
+          </DropdownMenuSub>
+          <DropdownMenuSeparator />
+          <DropdownMenuItem className="text-destructive">
+            Delete
+          </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
     </div>
