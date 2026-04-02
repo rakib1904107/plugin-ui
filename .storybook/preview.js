@@ -63,6 +63,7 @@ export const globalTypes = {
         { value: 'cyberpunk', title: 'Cyberpunk' },
         { value: 'twitter', title: 'Twitter' },
         { value: 'slate', title: 'Slate' },
+        { value: 'claude', title: 'Claude' },
       ],
       showName: true,
     },
@@ -91,6 +92,7 @@ export const decorators = [
         'cyberpunk': { tokens: Themes.cyberpunkTheme, darkTokens: Themes.cyberpunkDarkTheme },
         'twitter': { tokens: Themes.twitterTheme, darkTokens: Themes.twitterDarkTheme },
         slate: { tokens: Themes.slateTheme, darkTokens: Themes.slateDarkTheme },
+        claude: { tokens: Themes.claudeTheme, darkTokens: Themes.claudeDarkTheme },
     };
     
     const activeBrand = themeMap[brand] || themeMap.default;
