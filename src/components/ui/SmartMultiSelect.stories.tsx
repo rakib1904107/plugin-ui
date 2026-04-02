@@ -6,6 +6,7 @@ import {
   type SmartMultiSelectCreateContext,
 } from "./smart-multi-select";
 import { Input, Label, Button } from "./index";
+import { UserIcon } from "lucide-react";
 
 const allFrameworks: SmartMultiSelectOption[] = [
   { value: "next.js", label: "Next.js" },
@@ -559,4 +560,65 @@ function CreateComplexFormDemo() {
 
 export const CreateComplexForm: Story = {
   render: () => <CreateComplexFormDemo />,
+};
+
+// ─── With Start Icon ────────────────────────
+
+function WithStartIconDemo() {
+  const [value, setValue] = useState<string[]>([]);
+
+  return (
+    <SmartMultiSelect
+      options={allFrameworks}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select users..."
+      startIcon={<UserIcon />}
+    />
+  );
+}
+
+export const WithStartIcon: Story = {
+  render: () => <WithStartIconDemo />,
+};
+
+// ─── No Chevron ────────────────────────
+
+function NoChevronDemo() {
+  const [value, setValue] = useState<string[]>([]);
+
+  return (
+    <SmartMultiSelect
+      options={allFrameworks}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select frameworks..."
+      showChevron={false}
+    />
+  );
+}
+
+export const NoChevron: Story = {
+  render: () => <NoChevronDemo />,
+};
+
+// ─── Start Icon + No End Icon ────────────────────────
+
+function StartIconNoEndDemo() {
+  const [value, setValue] = useState<string[]>([]);
+
+  return (
+    <SmartMultiSelect
+      options={allFrameworks}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select users..."
+      startIcon={<UserIcon />}
+      endIcon={null}
+    />
+  );
+}
+
+export const StartIconNoEndIcon: Story = {
+  render: () => <StartIconNoEndDemo />,
 };

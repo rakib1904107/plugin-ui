@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, PlusIcon, XIcon } from "lucide-react"
+import { CheckIcon, ChevronDownIcon, Loader2Icon, PlusIcon, XIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import {
@@ -99,6 +99,12 @@ export interface SmartMultiSelectProps {
   onCreate?: (name: string, done: (createdValue?: string) => void) => void
   /** Text for the default create button @default "Create" */
   createButtonText?: string
+  /** Icon to show at the start of the trigger (e.g. a person icon) */
+  startIcon?: React.ReactNode
+  /** Custom icon to replace the default chevron. Set to `null` to hide */
+  endIcon?: React.ReactNode
+  /** Whether to show the chevron arrow @default true */
+  showChevron?: boolean
 }
 
 export interface SmartMultiSelectRef {
@@ -140,6 +146,9 @@ const SmartMultiSelect = React.forwardRef<
       selectOnCreate = false,
       onCreate,
       createButtonText = "Create",
+      startIcon,
+      endIcon,
+      showChevron = true,
     },
     ref
   ) => {
@@ -348,6 +357,9 @@ const SmartMultiSelect = React.forwardRef<
         >
           {selectedValues.length > 0 ? (
             <div className="flex justify-between items-center w-full gap-1">
+              {startIcon && (
+                <span className="shrink-0 [&_svg]:size-4 [&_svg]:text-muted-foreground">{startIcon}</span>
+              )}
               <div className="flex flex-wrap items-center gap-1 flex-1 min-w-0 pointer-events-auto">
                 {selectedValues.slice(0, maxCount).map((val) => (
                   <Badge
@@ -404,16 +416,29 @@ const SmartMultiSelect = React.forwardRef<
                 >
                   <XIcon className="size-4 opacity-50 hover:opacity-100 hover:text-destructive" />
                 </span>
-                <div className="h-4 w-px bg-border mx-1" />
-                <ChevronsUpDownIcon className="size-4 opacity-50" />
+                {(showChevron || endIcon !== undefined) && (
+                  <>
+                    <div className="h-4 w-px bg-border mx-1" />
+                    {endIcon !== undefined
+                      ? endIcon && <span className="shrink-0 [&_svg]:size-4 opacity-50">{endIcon}</span>
+                      : showChevron && <ChevronDownIcon className="size-4 opacity-50" />
+                    }
+                  </>
+                )}
               </div>
             </div>
           ) : (
             <div className="flex items-center justify-between w-full">
-              <span className="text-muted-foreground text-sm">
+              {startIcon && (
+                <span className="shrink-0 [&_svg]:size-4 [&_svg]:text-muted-foreground me-2">{startIcon}</span>
+              )}
+              <span className="text-muted-foreground text-sm flex-1">
                 {placeholder}
               </span>
-              <ChevronsUpDownIcon className="size-4 opacity-50" />
+              {endIcon !== undefined
+                ? endIcon && <span className="shrink-0 [&_svg]:size-4 opacity-50">{endIcon}</span>
+                : showChevron && <ChevronDownIcon className="size-4 opacity-50" />
+              }
             </div>
           )}
         </PopoverTrigger>

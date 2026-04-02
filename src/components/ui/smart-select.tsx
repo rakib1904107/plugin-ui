@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, PlusIcon, XIcon } from "lucide-react"
+import { CheckIcon, ChevronDownIcon, Loader2Icon, PlusIcon, XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -42,8 +42,8 @@ export interface SmartSelectCreateContext {
 }
 
 export interface SmartSelectProps {
-  /** Async callback triggered on search input change (after debounce) */
-  onSearch: (query: string) => void | Promise<void>
+  /** Callback triggered on search input change (after debounce). Optional for static options */
+  onSearch?: (query: string) => void | Promise<void>
   /** Options to display in the dropdown */
   options: SmartSelectOption[]
   /** Currently selected value */
@@ -93,6 +93,12 @@ export interface SmartSelectProps {
   onCreate?: (name: string, done: (createdValue?: string) => void) => void
   /** Text for the default create button @default "Create" */
   createButtonText?: string
+  /** Icon to show at the start of the trigger (e.g. a person icon) */
+  startIcon?: React.ReactNode
+  /** Custom icon to replace the default chevron. Set to `null` to hide */
+  endIcon?: React.ReactNode
+  /** Whether to show the chevron arrow @default true */
+  showChevron?: boolean
 }
 
 function SmartSelect({
@@ -117,6 +123,9 @@ function SmartSelect({
   selectOnCreate = false,
   onCreate,
   createButtonText = "Create",
+  startIcon,
+  endIcon,
+  showChevron = true,
 }: SmartSelectProps) {
   const [open, setOpen] = React.useState(false)
   const [search, setSearch] = React.useState("")
@@ -138,7 +147,7 @@ function SmartSelect({
       }
 
       timerRef.current = setTimeout(() => {
-        onSearch(query)
+        onSearch?.(query)
       }, debounceMs)
     },
     [onSearch, debounceMs]
@@ -322,9 +331,12 @@ function SmartSelect({
           />
         }
       >
+        {startIcon && (
+          <span className="shrink-0 [&_svg]:size-4 [&_svg]:text-muted-foreground">{startIcon}</span>
+        )}
         <span
           className={cn(
-            "truncate",
+            "truncate flex-1 text-start",
             !value && "text-muted-foreground"
           )}
         >
@@ -345,7 +357,10 @@ function SmartSelect({
               <span className="sr-only">Clear</span>
             </span>
           )}
-          <ChevronsUpDownIcon className="size-4 shrink-0 opacity-50" />
+          {endIcon !== undefined
+            ? endIcon && <span className="shrink-0 [&_svg]:size-4 opacity-50">{endIcon}</span>
+            : showChevron && <ChevronDownIcon className="size-4 shrink-0 opacity-50" />
+          }
         </div>
       </PopoverTrigger>
       <PopoverContent

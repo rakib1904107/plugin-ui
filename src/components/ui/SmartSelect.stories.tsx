@@ -6,6 +6,7 @@ import {
   type SmartSelectCreateContext,
 } from "./smart-select";
 import { Input, Label, Button } from "./index";
+import { SearchIcon, UserIcon } from "lucide-react";
 
 const allFrameworks: SmartSelectOption[] = [
   { value: "next.js", label: "Next.js" },
@@ -700,4 +701,112 @@ function SmartSelectCreateCustomComplexDemo() {
 
 export const CreateCustomComplex: Story = {
   render: () => <SmartSelectCreateCustomComplexDemo />,
+};
+
+// ─── With Start Icon ────────────────────────
+
+function SmartSelectStartIconDemo() {
+  const [value, setValue] = useState("");
+  const [options, setOptions] = useState(allFrameworks);
+
+  return (
+    <SmartSelect
+      onSearch={(query) => {
+        if (!query) { setOptions(allFrameworks); return; }
+        setOptions(allFrameworks.filter((f) => f.label.toLowerCase().includes(query.toLowerCase())));
+      }}
+      options={options}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Guest Customer"
+      idleMessage="All customers"
+      startIcon={<UserIcon />}
+      showClear
+    />
+  );
+}
+
+export const WithStartIcon: Story = {
+  render: () => <SmartSelectStartIconDemo />,
+};
+
+// ─── Custom End Icon ────────────────────────
+
+function SmartSelectCustomEndIconDemo() {
+  const [value, setValue] = useState("");
+  const [options, setOptions] = useState(allFrameworks);
+
+  return (
+    <SmartSelect
+      onSearch={(query) => {
+        if (!query) { setOptions(allFrameworks); return; }
+        setOptions(allFrameworks.filter((f) => f.label.toLowerCase().includes(query.toLowerCase())));
+      }}
+      options={options}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Search..."
+      idleMessage="All frameworks"
+      endIcon={<SearchIcon />}
+    />
+  );
+}
+
+export const CustomEndIcon: Story = {
+  render: () => <SmartSelectCustomEndIconDemo />,
+};
+
+// ─── No Chevron ────────────────────────
+
+function SmartSelectNoChevronDemo() {
+  const [value, setValue] = useState("");
+  const [options, setOptions] = useState(allFrameworks);
+
+  return (
+    <SmartSelect
+      onSearch={(query) => {
+        if (!query) { setOptions(allFrameworks); return; }
+        setOptions(allFrameworks.filter((f) => f.label.toLowerCase().includes(query.toLowerCase())));
+      }}
+      options={options}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select framework..."
+      idleMessage="All frameworks"
+      showChevron={false}
+      showClear
+    />
+  );
+}
+
+export const NoChevron: Story = {
+  render: () => <SmartSelectNoChevronDemo />,
+};
+
+// ─── Start Icon + No End Icon ────────────────────────
+
+function SmartSelectStartIconNoEndDemo() {
+  const [value, setValue] = useState("");
+  const [options, setOptions] = useState(allFrameworks);
+
+  return (
+    <SmartSelect
+      onSearch={(query) => {
+        if (!query) { setOptions(allFrameworks); return; }
+        setOptions(allFrameworks.filter((f) => f.label.toLowerCase().includes(query.toLowerCase())));
+      }}
+      options={options}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Guest Customer"
+      idleMessage="All customers"
+      startIcon={<UserIcon />}
+      endIcon={null}
+      showClear
+    />
+  );
+}
+
+export const StartIconNoEndIcon: Story = {
+  render: () => <SmartSelectStartIconNoEndDemo />,
 };
