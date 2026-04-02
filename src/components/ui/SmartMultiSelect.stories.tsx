@@ -3,7 +3,9 @@ import type { Meta, StoryObj } from "@storybook/react";
 import {
   SmartMultiSelect,
   type SmartMultiSelectOption,
+  type SmartMultiSelectCreateContext,
 } from "./smart-multi-select";
+import { Input, Label, Button } from "./index";
 
 const allFrameworks: SmartMultiSelectOption[] = [
   { value: "next.js", label: "Next.js" },
@@ -357,4 +359,204 @@ function FewStaticOptionsDemo() {
 
 export const FewStaticOptions: Story = {
   render: () => <FewStaticOptionsDemo />,
+};
+
+// ─── Disabled Search ────────────────────────
+
+function DisabledSearchDemo() {
+  const [value, setValue] = useState<string[]>([]);
+
+  return (
+    <SmartMultiSelect
+      options={statusOptions}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select status..."
+      hideSelectAll
+      disableSearch
+      className="w-[200px]"
+    />
+  );
+}
+
+export const DisabledSearch: Story = {
+  render: () => <DisabledSearchDemo />,
+};
+
+// ─── Create with Default Form ────────────────────────
+
+function CreateDefaultDemo() {
+  const [value, setValue] = useState<string[]>([]);
+  const [options, setOptions] = useState<SmartMultiSelectOption[]>([
+    ...allFrameworks,
+  ]);
+
+  return (
+    <SmartMultiSelect
+      options={options}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select or create..."
+      className="w-[280px]"
+      onCreate={(name, done) => {
+        const newOption = { value: name.toLowerCase(), label: name };
+        setOptions((prev) => [...prev, newOption]);
+        done(newOption.value);
+      }}
+      selectOnCreate
+    />
+  );
+}
+
+export const CreateDefault: Story = {
+  render: () => <CreateDefaultDemo />,
+};
+
+// ─── Create with Custom Form ────────────────────────
+
+function MultiCreateForm({
+  ctx,
+  onCreated,
+}: {
+  ctx: SmartMultiSelectCreateContext;
+  onCreated: (option: SmartMultiSelectOption) => void;
+}) {
+  const [name, setName] = useState(ctx.searchValue);
+  return (
+    <div className="p-3 border-t border-border space-y-2">
+      <p className="text-sm font-medium">Create new item</p>
+      <Input
+        value={name}
+        onChange={(e) => setName(e.target.value)}
+        placeholder="Item name..."
+        autoFocus
+        onKeyDown={(e) => e.stopPropagation()}
+      />
+      <div className="flex gap-2 justify-end">
+        <Button variant="outline" size="sm" onClick={() => ctx.clearSearch()}>
+          Cancel
+        </Button>
+        <Button
+          size="sm"
+          disabled={!name.trim()}
+          onClick={() => {
+            onCreated({ value: name.toLowerCase(), label: name });
+            ctx.clearSearch();
+          }}
+        >
+          Create
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function CreateCustomFormDemo() {
+  const [value, setValue] = useState<string[]>([]);
+  const [options, setOptions] = useState<SmartMultiSelectOption[]>([
+    ...allFrameworks,
+  ]);
+
+  const addOption = (opt: SmartMultiSelectOption) => {
+    setOptions((prev) => [...prev, opt]);
+    setValue((prev) => [...prev, opt.value]);
+  };
+
+  return (
+    <SmartMultiSelect
+      options={options}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select or create..."
+      className="w-[300px]"
+      renderCreateForm={(ctx) => (
+        <MultiCreateForm ctx={ctx} onCreated={addOption} />
+      )}
+    />
+  );
+}
+
+export const CreateCustomForm: Story = {
+  render: () => <CreateCustomFormDemo />,
+};
+
+// ─── Create with Complex Form ────────────────────────
+
+function MultiComplexCreateForm({
+  ctx,
+  onCreated,
+}: {
+  ctx: SmartMultiSelectCreateContext;
+  onCreated: (option: SmartMultiSelectOption) => void;
+}) {
+  const [name, setName] = useState(ctx.searchValue);
+  const [description, setDescription] = useState("");
+  return (
+    <div className="p-3 border-t border-border space-y-3">
+      <p className="text-sm font-medium">Create new framework</p>
+      <div className="space-y-1.5">
+        <Label className="text-xs">Name</Label>
+        <Input
+          value={name}
+          onChange={(e) => setName(e.target.value)}
+          placeholder="Framework name..."
+          autoFocus
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      </div>
+      <div className="space-y-1.5">
+        <Label className="text-xs">Description</Label>
+        <Input
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Short description..."
+          onKeyDown={(e) => e.stopPropagation()}
+        />
+      </div>
+      <div className="flex gap-2 justify-end pt-1">
+        <Button variant="outline" size="sm" onClick={() => ctx.clearSearch()}>
+          Cancel
+        </Button>
+        <Button
+          size="sm"
+          disabled={!name.trim()}
+          onClick={() => {
+            onCreated({ value: name.toLowerCase(), label: name });
+            ctx.clearSearch();
+          }}
+        >
+          Create
+        </Button>
+      </div>
+    </div>
+  );
+}
+
+function CreateComplexFormDemo() {
+  const [value, setValue] = useState<string[]>([]);
+  const [options, setOptions] = useState<SmartMultiSelectOption[]>([
+    ...allFrameworks,
+  ]);
+
+  const addOption = (opt: SmartMultiSelectOption) => {
+    setOptions((prev) => [...prev, opt]);
+    setValue((prev) => [...prev, opt.value]);
+  };
+
+  return (
+    <SmartMultiSelect
+      options={options}
+      value={value}
+      onValueChange={setValue}
+      placeholder="Select or create..."
+      className="w-[350px]"
+      renderCreateForm={(ctx) => (
+        <MultiComplexCreateForm ctx={ctx} onCreated={addOption} />
+      )}
+    />
+  );
+}
+
+export const CreateComplexForm: Story = {
+  render: () => <CreateComplexFormDemo />,
 };

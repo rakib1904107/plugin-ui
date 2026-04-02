@@ -102,6 +102,7 @@ export {
   type SmartMultiSelectOption,
   type SmartMultiSelectProps,
   type SmartMultiSelectRef,
+  type SmartMultiSelectCreateContext,
 } from "./smart-multi-select";
 
 // SmartSelect component

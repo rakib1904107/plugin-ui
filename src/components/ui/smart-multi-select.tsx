@@ -1,8 +1,9 @@
 "use client"
 
 import * as React from "react"
-import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, XIcon } from "lucide-react"
+import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, PlusIcon, XIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
 import {
   Command,
   CommandEmpty,
@@ -24,6 +25,15 @@ export interface SmartMultiSelectOption {
   label: string
   /** The unique identifier for the option. Should be unique and not empty */
   value: string
+}
+
+export interface SmartMultiSelectCreateContext {
+  /** Current search/input value */
+  searchValue: string
+  /** Clear the search input and close the create form */
+  clearSearch: () => void
+  /** Close the popover */
+  close: () => void
 }
 
 export interface SmartMultiSelectProps {
@@ -63,6 +73,8 @@ export interface SmartMultiSelectProps {
   disabled?: boolean
   /** Mark combobox as invalid */
   invalid?: boolean
+  /** Whether to disable the search input */
+  disableSearch?: boolean
   /** Custom label function for rendering each option */
   labelFunc?: (
     option: SmartMultiSelectOption,
@@ -73,6 +85,20 @@ export interface SmartMultiSelectProps {
   onValueChange: (value: string[]) => void
   /** Callback when search input changes */
   onSearch?: (value: string) => void
+  /**
+   * Render function for the create form. Receives a context with searchValue,
+   * clearSearch, and close helpers. Return any React node.
+   */
+  renderCreateForm?: (ctx: SmartMultiSelectCreateContext) => React.ReactNode
+  /** Whether to auto-select the newly created item @default false */
+  selectOnCreate?: boolean
+  /**
+   * Callback fired after a new item is created via the default create form.
+   * Receives the name and a done callback to call when finished.
+   */
+  onCreate?: (name: string, done: (createdValue?: string) => void) => void
+  /** Text for the default create button @default "Create" */
+  createButtonText?: string
 }
 
 export interface SmartMultiSelectRef {
@@ -106,9 +132,14 @@ const SmartMultiSelect = React.forwardRef<
       searchValue,
       disabled = false,
       invalid = false,
+      disableSearch = false,
       labelFunc,
       onValueChange,
       onSearch,
+      renderCreateForm,
+      selectOnCreate = false,
+      onCreate,
+      createButtonText = "Create",
     },
     ref
   ) => {
@@ -118,12 +149,14 @@ const SmartMultiSelect = React.forwardRef<
     const [searchValueState, setSearchValueState] = React.useState(
       searchValue || ""
     )
-    // Cache options for async mode so selected labels remain visible after search changes
+    const [showCreate, setShowCreate] = React.useState(false)
     const [reserveOptions, setReserveOptions] = React.useState<
       Record<string, SmartMultiSelectOption>
     >({})
     const optionsRef = React.useRef<Record<string, SmartMultiSelectOption>>({})
     const isInit = React.useRef(false)
+
+    const hasCreateCapability = !!(renderCreateForm || onCreate)
 
     const handleInputKeyDown = (
       event: React.KeyboardEvent<HTMLInputElement>
@@ -168,7 +201,37 @@ const SmartMultiSelect = React.forwardRef<
       }
     }
 
-    // Cache options for async mode so selected item labels persist across searches
+    const clearSearch = React.useCallback(() => {
+      setSearchValueState("")
+      setShowCreate(false)
+    }, [])
+
+    const createCtx: SmartMultiSelectCreateContext = React.useMemo(
+      () => ({
+        searchValue: searchValueState,
+        clearSearch,
+        close: () => setIsPopoverOpen(false),
+      }),
+      [searchValueState, clearSearch]
+    )
+
+    const handleDefaultCreate = React.useCallback(() => {
+      if (!onCreate || !searchValueState.trim()) return
+      onCreate(searchValueState.trim(), (createdValue?: string) => {
+        if (selectOnCreate && createdValue) {
+          const newSelected = [...selectedValues, createdValue]
+          setSelectedValues(newSelected)
+          onValueChange(newSelected)
+        }
+        clearSearch()
+      })
+    }, [onCreate, searchValueState, selectOnCreate, selectedValues, onValueChange, clearSearch])
+
+    const showCreateForm =
+      hasCreateCapability &&
+      (showCreate || (searchValueState && !loading && options.length === 0))
+
+    // Cache options for async mode
     React.useEffect(() => {
       const temp = options.reduce(
         (acc, option) => {
@@ -223,15 +286,46 @@ const SmartMultiSelect = React.forwardRef<
       return options.find((o) => o.value === val)?.label ?? val
     }
 
+    const renderDefaultCreateForm = () => (
+      <div className="flex flex-col gap-2 p-3 border-t border-border">
+        <div className="flex items-center gap-2">
+          <input
+            className="flex h-8 w-full rounded-md border border-input bg-transparent px-2 text-sm outline-none placeholder:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 focus-visible:ring-[3px]"
+            value={searchValueState}
+            onChange={(e) => setSearchValueState(e.target.value)}
+            placeholder="Enter name..."
+            autoFocus
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                e.preventDefault()
+                handleDefaultCreate()
+              }
+              e.stopPropagation()
+            }}
+          />
+          <Button
+            size="sm"
+            onClick={handleDefaultCreate}
+            disabled={!searchValueState.trim()}
+          >
+            {createButtonText}
+          </Button>
+        </div>
+      </div>
+    )
+
     return (
       <Popover
         open={isPopoverOpen}
         onOpenChange={(open) => {
           if (disabled) return
           setIsPopoverOpen(open)
-          if (!open && clearSearchOnClose) {
-            setSearchValueState("")
-            onSearch?.("")
+          if (!open) {
+            setShowCreate(false)
+            if (clearSearchOnClose) {
+              setSearchValueState("")
+              onSearch?.("")
+            }
           }
         }}
       >
@@ -329,108 +423,137 @@ const SmartMultiSelect = React.forwardRef<
           align="start"
         >
           <Command shouldFilter={!async}>
-            <CommandInput
-              placeholder={searchPlaceholder}
-              value={searchValueState}
-              onValueChange={(val: string) => {
-                setSearchValueState(val)
-                onSearch?.(val)
-              }}
-              onKeyDown={handleInputKeyDown}
-            />
-            <CommandList>
-              {async && error && (
-                <div className="p-4 text-center text-destructive text-sm">
-                  {error.message}
-                </div>
-              )}
-              {async && loading && options.length === 0 && (
-                <div className="flex items-center justify-center gap-2 p-4">
-                  <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
-                  <span className="text-muted-foreground text-sm">
-                    Searching...
-                  </span>
-                </div>
-              )}
-              {async ? (
-                !loading &&
-                !error &&
-                options.length === 0 && (
-                  <div className="p-4 text-center text-muted-foreground text-sm">
-                    No results found.
-                  </div>
-                )
-              ) : (
-                <CommandEmpty>No results found.</CommandEmpty>
-              )}
-              <CommandGroup>
-                {!async && !hideSelectAll && (
-                  <CommandItem
-                    key="__select_all__"
-                    onSelect={toggleAll}
-                    className="cursor-pointer"
+            {!disableSearch && (
+              <div className="flex w-full items-center [&>[data-slot=command-input-wrapper]]:flex-1 [&>[data-slot=command-input-wrapper]]:border-b-0 border-b border-border">
+                <CommandInput
+                  placeholder={searchPlaceholder}
+                  value={searchValueState}
+                  onValueChange={(val: string) => {
+                    setSearchValueState(val)
+                    setShowCreate(false)
+                    onSearch?.(val)
+                  }}
+                  onKeyDown={handleInputKeyDown}
+                />
+                {hasCreateCapability && (
+                  <Button
+                    variant="ghost"
+                    size="icon-sm"
+                    className="me-2 shrink-0"
+                    onClick={() => setShowCreate((prev) => !prev)}
                   >
-                    <div
-                      className={cn(
-                        "me-1 size-4 flex items-center justify-center rounded-sm border border-primary shadow-xs",
-                        selectedValues.length === options.length
-                          ? "bg-primary text-primary-foreground"
-                          : "opacity-50 [&_svg]:invisible"
-                      )}
-                    >
-                      <CheckIcon className="size-3.5" />
-                    </div>
-                    <span>Select all</span>
-                  </CommandItem>
+                    {showCreate ? (
+                      <XIcon className="size-4" />
+                    ) : (
+                      <PlusIcon className="size-4" />
+                    )}
+                  </Button>
                 )}
-                {options.map((option, index) => {
-                  const isSelected = selectedValues.includes(option.value)
-                  return (
-                    <CommandItem
-                      key={option.value}
-                      onSelect={() => toggleOption(option.value)}
-                      className="cursor-pointer"
-                    >
-                      <div
-                        className={cn(
-                          "me-1 size-4 flex items-center justify-center rounded-sm border border-primary shadow-xs",
-                          isSelected
-                            ? "bg-primary text-primary-foreground"
-                            : "opacity-50 [&_svg]:invisible"
-                        )}
-                      >
-                        <CheckIcon className="size-3.5" />
-                      </div>
-                      {labelFunc
-                        ? labelFunc(option, isSelected, index)
-                        : option.label}
-                    </CommandItem>
-                  )
-                })}
-              </CommandGroup>
-              <CommandSeparator />
-              <CommandGroup>
-                <div className="flex items-center justify-between">
-                  {selectedValues.length > 0 && (
-                    <>
-                      <CommandItem
-                        onSelect={handleClear}
-                        className="flex-1 justify-center cursor-pointer"
-                      >
-                        {clearText}
-                      </CommandItem>
-                      <div className="h-4 w-px bg-border" />
-                    </>
+              </div>
+            )}
+            <CommandList>
+              {!showCreateForm && (
+                <>
+                  {async && error && (
+                    <div className="p-4 text-center text-destructive text-sm">
+                      {error.message}
+                    </div>
                   )}
-                  <CommandItem
-                    onSelect={() => setIsPopoverOpen(false)}
-                    className="flex-1 justify-center cursor-pointer max-w-full"
-                  >
-                    {closeText}
-                  </CommandItem>
-                </div>
-              </CommandGroup>
+                  {async && loading && options.length === 0 && (
+                    <div className="flex items-center justify-center gap-2 p-4">
+                      <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
+                      <span className="text-muted-foreground text-sm">
+                        Searching...
+                      </span>
+                    </div>
+                  )}
+                  {async ? (
+                    !loading &&
+                    !error &&
+                    options.length === 0 &&
+                    !hasCreateCapability && (
+                      <div className="p-4 text-center text-muted-foreground text-sm">
+                        No results found.
+                      </div>
+                    )
+                  ) : (
+                    <CommandEmpty>No results found.</CommandEmpty>
+                  )}
+                  <CommandGroup>
+                    {!async && !hideSelectAll && options.length > 0 && (
+                      <CommandItem
+                        key="__select_all__"
+                        onSelect={toggleAll}
+                        className="cursor-pointer"
+                      >
+                        <div
+                          className={cn(
+                            "me-1 size-4 flex items-center justify-center rounded-sm border border-primary shadow-xs",
+                            selectedValues.length === options.length
+                              ? "bg-primary text-primary-foreground"
+                              : "opacity-50 [&_svg]:invisible"
+                          )}
+                        >
+                          <CheckIcon className="size-3.5" />
+                        </div>
+                        <span>Select all</span>
+                      </CommandItem>
+                    )}
+                    {options.map((option, index) => {
+                      const isSelected = selectedValues.includes(option.value)
+                      return (
+                        <CommandItem
+                          key={option.value}
+                          onSelect={() => toggleOption(option.value)}
+                          className="cursor-pointer"
+                        >
+                          <div
+                            className={cn(
+                              "me-1 size-4 flex items-center justify-center rounded-sm border border-primary shadow-xs",
+                              isSelected
+                                ? "bg-primary text-primary-foreground"
+                                : "opacity-50 [&_svg]:invisible"
+                            )}
+                          >
+                            <CheckIcon className="size-3.5" />
+                          </div>
+                          {labelFunc
+                            ? labelFunc(option, isSelected, index)
+                            : option.label}
+                        </CommandItem>
+                      )
+                    })}
+                  </CommandGroup>
+                  {options.length > 0 && <CommandSeparator />}
+                  <CommandGroup>
+                    <div className="flex items-center justify-between">
+                      {selectedValues.length > 0 && (
+                        <>
+                          <CommandItem
+                            onSelect={handleClear}
+                            className="flex-1 justify-center cursor-pointer"
+                          >
+                            {clearText}
+                          </CommandItem>
+                          <div className="h-4 w-px bg-border" />
+                        </>
+                      )}
+                      <CommandItem
+                        onSelect={() => setIsPopoverOpen(false)}
+                        className="flex-1 justify-center cursor-pointer max-w-full"
+                      >
+                        {closeText}
+                      </CommandItem>
+                    </div>
+                  </CommandGroup>
+                </>
+              )}
             </CommandList>
+            {showCreateForm && (
+              renderCreateForm
+                ? renderCreateForm(createCtx)
+                : renderDefaultCreateForm()
+            )}
           </Command>
         </PopoverContent>
       </Popover>
