@@ -1,7 +1,7 @@
 "use client"
 
-import { Check, ChevronsUpDown, Loader2 } from "lucide-react"
-import { useEffect, useState } from "react"
+import * as React from "react"
+import { CheckIcon, ChevronsUpDownIcon, Loader2Icon, XIcon } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import {
   Command,
@@ -10,90 +10,280 @@ import {
   CommandInput,
   CommandItem,
   CommandList,
+  CommandSeparator,
 } from "@/components/ui/command"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover"
 import { cn } from "@/lib/utils"
 
-const AsyncCombobox = () => {
-  const [open, setOpen] = useState(false)
-  const [value, setValue] = useState("")
-  const [search, setSearch] = useState("")
-  const [isSearching, setIsSearching] = useState(false)
-  const [results, setResults] = useState<string[]>([])
+export interface AsyncComboboxOption {
+  /** Unique value for the option */
+  value: string
+  /** Display label */
+  label: string
+  /** Optional description shown below label */
+  description?: string
+  /** Whether the option is disabled */
+  disabled?: boolean
+  /** Optional group name for grouping options */
+  group?: string
+}
 
-  useEffect(() => {
-    if (!search) {
-      setResults([])
-      return
+export interface AsyncComboboxProps {
+  /** Async callback triggered on search input change (after debounce) */
+  onSearch: (query: string) => void | Promise<void>
+  /** Options to display in the dropdown */
+  options: AsyncComboboxOption[]
+  /** Currently selected value */
+  value?: string
+  /** Callback when selection changes */
+  onValueChange?: (value: string) => void
+  /** Whether results are currently loading */
+  loading?: boolean
+  /** Placeholder text for the trigger button */
+  placeholder?: string
+  /** Placeholder text for the search input */
+  searchPlaceholder?: string
+  /** Message shown when no results are found */
+  emptyMessage?: string
+  /** Message shown before the user starts typing */
+  idleMessage?: string
+  /** Whether to show a clear button when a value is selected */
+  showClear?: boolean
+  /** Whether the combobox is disabled */
+  disabled?: boolean
+  /** Mark combobox as invalid */
+  invalid?: boolean
+  /** Debounce delay in milliseconds @default 300 */
+  debounceMs?: number
+  /** Additional class for the trigger button */
+  className?: string
+  /** Width class for the popover content @default "w-[250px]" */
+  contentClassName?: string
+  /** Custom render function for each option */
+  renderOption?: (option: AsyncComboboxOption, isSelected: boolean) => React.ReactNode
+}
+
+function AsyncCombobox({
+  onSearch,
+  options,
+  value = "",
+  onValueChange,
+  loading = false,
+  placeholder = "Select an option...",
+  searchPlaceholder = "Type to search...",
+  emptyMessage = "No results found.",
+  idleMessage = "Start typing to search",
+  showClear = false,
+  disabled = false,
+  invalid = false,
+  debounceMs = 300,
+  className,
+  contentClassName,
+  renderOption,
+}: AsyncComboboxProps) {
+  const [open, setOpen] = React.useState(false)
+  const [search, setSearch] = React.useState("")
+  const timerRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const selectedOption = React.useMemo(
+    () => options.find((opt) => opt.value === value),
+    [options, value]
+  )
+
+  const handleSearchChange = React.useCallback(
+    (query: string) => {
+      setSearch(query)
+
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+      }
+
+      timerRef.current = setTimeout(() => {
+        onSearch(query)
+      }, debounceMs)
+    },
+    [onSearch, debounceMs]
+  )
+
+  React.useEffect(() => {
+    return () => {
+      if (timerRef.current) {
+        clearTimeout(timerRef.current)
+      }
+    }
+  }, [])
+
+  React.useEffect(() => {
+    if (!open) {
+      setSearch("")
+    }
+  }, [open])
+
+  // Group options by group name
+  const groupedOptions = React.useMemo(() => {
+    const groups = new Map<string, AsyncComboboxOption[]>()
+    const ungrouped: AsyncComboboxOption[] = []
+
+    for (const opt of options) {
+      if (opt.group) {
+        const group = groups.get(opt.group) || []
+        group.push(opt)
+        groups.set(opt.group, group)
+      } else {
+        ungrouped.push(opt)
+      }
     }
 
-    setIsSearching(true)
-    const timer = setTimeout(() => {
-      // Simulate API call
-      setResults([`${search} - Result 1`, `${search} - Result 2`, `${search} - Result 3`])
-      setIsSearching(false)
-    }, 500)
+    return { groups, ungrouped }
+  }, [options])
 
-    return () => clearTimeout(timer)
-  }, [search])
+  const handleClear = React.useCallback(
+    (e: React.MouseEvent) => {
+      e.stopPropagation()
+      onValueChange?.("")
+    },
+    [onValueChange]
+  )
+
+  const renderItems = (items: AsyncComboboxOption[]) =>
+    items.map((option) => {
+      const isSelected = value === option.value
+      return (
+        <CommandItem
+          key={option.value}
+          value={option.value}
+          disabled={option.disabled}
+          onSelect={(currentValue) => {
+            onValueChange?.(currentValue === value ? "" : currentValue)
+            setOpen(false)
+          }}
+        >
+          {renderOption ? (
+            renderOption(option, isSelected)
+          ) : (
+            <>
+              {option.description ? (
+                <div className="flex flex-col">
+                  <span>{option.label}</span>
+                  <span className="text-xs text-muted-foreground">
+                    {option.description}
+                  </span>
+                </div>
+              ) : (
+                option.label
+              )}
+              <CheckIcon
+                className={cn(
+                  "ms-auto size-4",
+                  isSelected ? "opacity-100" : "opacity-0"
+                )}
+              />
+            </>
+          )}
+        </CommandItem>
+      )
+    })
+
+  const renderGroupedContent = () => {
+    const { groups, ungrouped } = groupedOptions
+    const entries = Array.from(groups.entries())
+
+    return (
+      <>
+        {ungrouped.length > 0 && (
+          <CommandGroup>{renderItems(ungrouped)}</CommandGroup>
+        )}
+        {entries.map(([groupName, items], index) => (
+          <React.Fragment key={groupName}>
+            {(index > 0 || ungrouped.length > 0) && <CommandSeparator />}
+            <CommandGroup heading={groupName}>
+              {renderItems(items)}
+            </CommandGroup>
+          </React.Fragment>
+        ))}
+      </>
+    )
+  }
 
   return (
-    <Popover onOpenChange={setOpen} open={open}>
+    <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger
         render={
           <Button
-            aria-expanded={open}
-            className="w-[250px] justify-between border-input text-foreground font-normal"
-            role="combobox"
             variant="outline"
+            role="combobox"
+            aria-expanded={open}
+            aria-invalid={invalid || undefined}
+            disabled={disabled}
+            data-slot="async-combobox-trigger"
+            className={cn(
+              "w-[250px] justify-between border-input text-foreground font-normal",
+              invalid &&
+                "border-destructive ring-destructive/20 ring-[3px] dark:ring-destructive/40",
+              className
+            )}
           />
         }
       >
-        {value || "Search dynamically..."}
-        <ChevronsUpDown className="ml-2 size-4 shrink-0 opacity-50" />
+        <span
+          className={cn(
+            "truncate",
+            !value && "text-muted-foreground"
+          )}
+        >
+          {selectedOption?.label || value || placeholder}
+        </span>
+        <div className="flex items-center gap-1 ms-2">
+          {showClear && value && (
+            <span
+              role="button"
+              tabIndex={-1}
+              className="rounded-sm opacity-50 hover:opacity-100 cursor-pointer"
+              onClick={handleClear}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") handleClear(e as unknown as React.MouseEvent)
+              }}
+            >
+              <XIcon className="size-3.5" />
+              <span className="sr-only">Clear</span>
+            </span>
+          )}
+          <ChevronsUpDownIcon className="size-4 shrink-0 opacity-50" />
+        </div>
       </PopoverTrigger>
-      <PopoverContent className="w-[250px] p-0">
+      <PopoverContent
+        data-slot="async-combobox-content"
+        className={cn("w-[250px] gap-0 p-0", contentClassName)}
+        align="start"
+      >
         <Command shouldFilter={false}>
-          <CommandInput onValueChange={setSearch} placeholder="Type to search..." value={search} />
+          <CommandInput
+            placeholder={searchPlaceholder}
+            value={search}
+            onValueChange={handleSearchChange}
+          />
           <CommandList>
-            {isSearching ? (
-              <div className="flex items-center justify-center p-4">
-                <Loader2 className="size-4 animate-spin" />
-                <span className="ml-2 text-muted-foreground text-sm">Searching...</span>
+            {loading ? (
+              <div className="flex items-center justify-center gap-2 p-4">
+                <Loader2Icon className="size-4 animate-spin text-muted-foreground" />
+                <span className="text-muted-foreground text-sm">
+                  Searching...
+                </span>
               </div>
+            ) : !search ? (
+              <div className="p-4 text-center text-muted-foreground text-sm">
+                {idleMessage}
+              </div>
+            ) : options.length === 0 ? (
+              <CommandEmpty>{emptyMessage}</CommandEmpty>
+            ) : groupedOptions.groups.size > 0 ? (
+              renderGroupedContent()
             ) : (
-              <>
-                {!search && (
-                  <div className="p-4 text-center text-muted-foreground text-sm">
-                    Start typing to search
-                  </div>
-                )}
-                {search && results.length === 0 && !isSearching && (
-                  <CommandEmpty>No results found.</CommandEmpty>
-                )}
-                {results.length > 0 && (
-                  <CommandGroup>
-                    {results.map(result => (
-                      <CommandItem
-                        key={result}
-                        onSelect={currentValue => {
-                          setValue(currentValue === value ? "" : currentValue)
-                          setOpen(false)
-                        }}
-                        value={result}
-                      >
-                        <Check
-                          className={cn(
-                            "mr-2 size-4",
-                            value === result ? "opacity-100" : "opacity-0",
-                          )}
-                        />
-                        {result}
-                      </CommandItem>
-                    ))}
-                  </CommandGroup>
-                )}
-              </>
+              <CommandGroup>{renderItems(options)}</CommandGroup>
             )}
           </CommandList>
         </Command>
@@ -102,4 +292,5 @@ const AsyncCombobox = () => {
   )
 }
 
-export default AsyncCombobox
+export { AsyncCombobox }
+export type { AsyncComboboxOption as AsyncComboboxOptionType }

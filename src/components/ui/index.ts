@@ -97,7 +97,11 @@ export {
 } from "./select";
 
 // AsyncCombobox component
-export { default as AsyncCombobox } from "./async-combobox";
+export {
+  AsyncCombobox,
+  type AsyncComboboxOption,
+  type AsyncComboboxProps,
+} from "./async-combobox";
 
 // Command component (cmdk)
 export {
