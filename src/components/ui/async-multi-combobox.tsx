@@ -227,6 +227,7 @@ const AsyncMultiCombobox = React.forwardRef<
       <Popover
         open={isPopoverOpen}
         onOpenChange={(open) => {
+          if (disabled) return
           setIsPopoverOpen(open)
           if (!open && clearSearchOnClose) {
             setSearchValueState("")
@@ -245,7 +246,7 @@ const AsyncMultiCombobox = React.forwardRef<
                 "cursor-pointer flex h-auto min-h-9 w-[250px] items-center justify-between rounded-md border border-input bg-transparent px-2 py-1 text-sm shadow-xs transition-[color,box-shadow] focus-within:border-ring focus-within:ring-ring/50 focus-within:ring-[3px]",
                 invalid &&
                   "border-destructive ring-destructive/20 ring-[3px] dark:ring-destructive/40",
-                disabled && "cursor-not-allowed opacity-50",
+                disabled && "cursor-not-allowed opacity-50 pointer-events-none",
                 className
               )}
             />
@@ -253,7 +254,7 @@ const AsyncMultiCombobox = React.forwardRef<
         >
           {selectedValues.length > 0 ? (
             <div className="flex justify-between items-center w-full gap-1">
-              <div className="flex flex-wrap items-center gap-1 flex-1 min-w-0">
+              <div className="flex flex-wrap items-center gap-1 flex-1 min-w-0 pointer-events-auto">
                 {selectedValues.slice(0, maxCount).map((val) => (
                   <Badge
                     key={val}
@@ -261,15 +262,18 @@ const AsyncMultiCombobox = React.forwardRef<
                     className="h-6 gap-1 rounded-md px-2 text-xs font-normal max-w-[120px]"
                   >
                     <span className="truncate">{getOptionLabel(val)}</span>
-                    <XIcon
-                      className="size-3 shrink-0 cursor-pointer opacity-50 hover:opacity-100 hover:text-destructive"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={(e) => {
+                    <span
+                      role="button"
+                      tabIndex={-1}
+                      className="inline-flex cursor-pointer"
+                      onPointerDown={(e) => {
                         e.stopPropagation()
                         e.preventDefault()
                         toggleOption(val)
                       }}
-                    />
+                    >
+                      <XIcon className="size-3 shrink-0 opacity-50 hover:opacity-100 hover:text-destructive" />
+                    </span>
                   </Badge>
                 ))}
                 {selectedValues.length > maxCount && (
@@ -278,28 +282,34 @@ const AsyncMultiCombobox = React.forwardRef<
                     className="h-6 gap-1 rounded-md px-2 text-xs font-normal"
                   >
                     <span>{`+${selectedValues.length - maxCount}`}</span>
-                    <XIcon
-                      className="size-3 shrink-0 cursor-pointer opacity-50 hover:opacity-100 hover:text-destructive"
-                      onPointerDown={(e) => e.stopPropagation()}
-                      onClick={(e) => {
+                    <span
+                      role="button"
+                      tabIndex={-1}
+                      className="inline-flex cursor-pointer"
+                      onPointerDown={(e) => {
                         e.stopPropagation()
                         e.preventDefault()
                         clearExtraOptions()
                       }}
-                    />
+                    >
+                      <XIcon className="size-3 shrink-0 opacity-50 hover:opacity-100 hover:text-destructive" />
+                    </span>
                   </Badge>
                 )}
               </div>
-              <div className="flex items-center gap-1 shrink-0 ms-1">
-                <XIcon
-                  className="size-4 cursor-pointer opacity-50 hover:opacity-100 hover:text-destructive"
-                  onPointerDown={(e) => e.stopPropagation()}
-                  onClick={(e) => {
+              <div className="flex items-center gap-1 shrink-0 ms-1 pointer-events-auto">
+                <span
+                  role="button"
+                  tabIndex={-1}
+                  className="inline-flex cursor-pointer"
+                  onPointerDown={(e) => {
                     e.stopPropagation()
                     e.preventDefault()
                     handleClear()
                   }}
-                />
+                >
+                  <XIcon className="size-4 opacity-50 hover:opacity-100 hover:text-destructive" />
+                </span>
                 <div className="h-4 w-px bg-border mx-1" />
                 <ChevronsUpDownIcon className="size-4 opacity-50" />
               </div>
