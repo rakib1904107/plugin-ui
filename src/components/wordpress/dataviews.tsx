@@ -448,7 +448,7 @@ function SkeletonTable({
             </thead>
             <tbody>
                 {Array.from({ length: rows }, (_, rowIdx) => (
-                    <tr key={rowIdx} className="bg-background border-b border-border last:border-b-0">
+                    <tr key={rowIdx} className="border-b border-border last:border-b-0">
                         {hasBulkActions && (
                             <td className="h-12 w-12 px-5 align-middle">
                                 <Skeleton className="h-4 w-4 rounded-sm" />

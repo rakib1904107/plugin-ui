@@ -1,7 +1,7 @@
 import type { Meta, StoryFn } from "@storybook/react";
 import { SlotFillProvider } from "@wordpress/components";
 import { Archive, Ban, CheckCircle, Clock, Eye, Mail, Pencil, ShieldCheck, Star, Trash2, UserCheck, UserCog, Users, UserX } from "lucide-react";
-import React, { useState } from "react";
+import { useState } from "react";
 import { Badge, Input } from "../ui";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select";
 import { DataViews, type DataViewAction, type DataViewField, type DataViewFilterField, type DataViewState } from "./dataviews";
@@ -201,6 +201,36 @@ Every \`DataViews\` instance must receive a \`namespace\` string. It is used for
 };
 
 export default meta;
+
+
+
+/** Basic DataViews table without pagination. */
+export const BasicTable: StoryFn = () => {
+  const [view, setView] = useState<DataViewState>(createDefaultView(["name", "email", "status", "role", "joinedAt"]));
+
+  // Use a small subset of records so the table isn't too long
+  const smallDataSet = allUsers.slice(0, 10);
+
+  return (
+    <div className="p-4">
+      <DataViews<User>
+        namespace="dataviews-demo"
+        data={smallDataSet}
+        fields={fields}
+        view={view}
+        onChangeView={setView}
+        getItemId={(item) => item.id}
+        paginationInfo={
+          {
+            totalItems: smallDataSet.length,
+            totalPages: 1,
+          }
+        }
+      />
+    </div>
+  );
+};
+BasicTable.storyName = "Basic Table";
 
 /** Basic DataViews table with pagination. Click through pages to see pagination in action. */
 export const BasicWithPagination: StoryFn = () => {
